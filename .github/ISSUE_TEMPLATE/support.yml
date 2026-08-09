@@ -1,0 +1,39 @@
+name: Support question
+description: Ask for help using Plotree.
+title: "[Support]: "
+labels:
+  - question
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach .plotree files, screenshots, or logs that contain private story material.
+  - type: textarea
+    id: question
+    attributes:
+      label: What do you need help with?
+      description: Describe the goal and where you became stuck.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Plotree version or commit
+      placeholder: e.g. 1.0.0 or abc1234
+    validations:
+      required: true
+  - type: dropdown
+    id: windows-version
+    attributes:
+      label: Windows version
+      options:
+        - Windows 11
+        - Windows 10
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: attempted
+    attributes:
+      label: What have you tried?
+      description: Include only sanitized steps, logs, or screenshots.
