@@ -171,7 +171,8 @@ static void ReplaceHomePage(string path, string content)
 
     if (mainStart < 0 || mainEnd < 0 || mainEnd <= mainStart)
     {
-        throw new InvalidOperationException("LithoSharp did not generate the expected main content area.");
+        throw new InvalidOperationException(
+            $"Could not replace the main content in '{path}'. Found <main> at {mainStart} and </main> at {mainEnd}.");
     }
 
     var contentStart = mainStart + mainStartMarker.Length;
