@@ -30,6 +30,7 @@ var customization = new SiteCustomization
             :root {
               --accent: #d69be6;
               --accent-contrast: #1b1b1b;
+              --measure: min(86rem, 100% - 4rem);
             }
             .hero { border-color: rgba(214, 155, 230, 0.45); }
             .site-header { border-bottom-color: rgba(214, 155, 230, 0.22); }
@@ -45,7 +46,8 @@ var customization = new SiteCustomization
               display: none;
             }
             .post-layout {
-              max-width: 58rem;
+              inline-size: 100%;
+              max-width: none;
             }
             .docs-home {
               max-width: 62rem;
@@ -190,6 +192,7 @@ static string CreateDocumentationHome() => """
       <div class="docs-home-actions">
         <a class="button-link" href="/Plotree/posts/user-manual-en.html">English user manual</a>
         <a class="button-link" href="/Plotree/posts/user-manual-ja.html">日本語ユーザーマニュアル</a>
+        <a class="button-link" href="https://github.com/Htkym/Plotree">GitHub repository</a>
       </div>
     </section>
 
