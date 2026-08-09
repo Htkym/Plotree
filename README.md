@@ -12,6 +12,12 @@ Use the canvas to connect narrative beats, edit a node's synopsis and memo in th
 
 [English user manual](docs/user-manual.en.md) | [日本語版ユーザーマニュアル](docs/user-manual.ja.md)
 
+## Support
+
+Use [GitHub Issues](https://github.com/Htkym/Plotree/issues/new/choose) for bug reports, feature requests, and usage questions. Do not attach `.plotree` files or screenshots containing private story material.
+
+See [Support](SUPPORT.md) and the [privacy policy](docs/privacy-policy.md) for details.
+
 ## Highlights
 
 - Create scene, choice, and ending nodes, then drag from a node handle to create labeled connections.

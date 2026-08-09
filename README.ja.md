@@ -14,6 +14,12 @@ WinUI 3 (Windows App SDK) 製の Windows デスクトップアプリです。
 
 [日本語版ユーザーマニュアル](docs/user-manual.ja.md) | [English user manual](docs/user-manual.en.md)
 
+## サポート
+
+不具合報告、機能要望、使い方の質問は [GitHub Issue](https://github.com/Htkym/Plotree/issues/new/choose) で受け付けます。私的な作品内容を含む `.plotree` ファイルやスクリーンショットは添付しないでください。
+
+詳しくは [サポート案内](SUPPORT.md) と [プライバシーポリシー](docs/privacy-policy.ja.md) を参照してください。
+
 ## 特徴
 
 - **フローチャート式エディタ** — ノード（シーン・選択肢・エンディング）をキャンバス上に配置し、ドラッグで接続。パン・ズーム対応
