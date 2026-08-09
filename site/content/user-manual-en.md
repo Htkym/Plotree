@@ -7,8 +7,6 @@ tags:
   - English
 ---
 
-# Plotree User Manual
-
 [English](user-manual-en.html) | [日本語](user-manual-ja.html)
 
 Plotree helps writers design a branching narrative as a connected graph. A project contains the story flow, node text, writing notes, tags, characters, groups, and appearance settings.

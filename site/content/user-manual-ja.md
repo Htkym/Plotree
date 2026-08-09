@@ -7,8 +7,6 @@ tags:
   - Japanese
 ---
 
-# Plotree ユーザーマニュアル
-
 [English](user-manual-en.html) | [日本語](user-manual-ja.html)
 
 Plotree は、小説やゲームの分岐する物語をグラフとして設計するアプリです。プロジェクトには、物語の流れ、ノードの本文とメモ、タグ、登場人物、グループ、外観設定をまとめて保存できます。
