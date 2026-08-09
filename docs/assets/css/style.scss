@@ -1,0 +1,90 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  color: #e6e6e6;
+  background: #1b1b1b;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong {
+  color: #ffffff;
+}
+
+a {
+  color: #9cc2ff;
+}
+
+a:hover,
+a:focus {
+  color: #c4daff;
+}
+
+hr {
+  border-color: #4a4a4a;
+}
+
+blockquote {
+  color: #c5c5c5;
+  border-left-color: #7c8fb3;
+}
+
+code,
+pre {
+  color: #e6e6e6;
+  background: #292929;
+}
+
+pre {
+  border-color: #4a4a4a;
+}
+
+table {
+  border-color: #4a4a4a;
+}
+
+th,
+td {
+  border-color: #4a4a4a;
+}
+
+th {
+  color: #ffffff;
+  background: #303030;
+}
+
+tr:nth-child(even) {
+  background: #252525;
+}
+
+img {
+  border: 1px solid #4a4a4a;
+  border-radius: 8px;
+}
+
+header,
+section {
+  background: #1b1b1b;
+}
+
+footer {
+  color: #b5b5b5;
+}
+
+@media print, screen and (max-width: 960px) {
+  header,
+  section {
+    background: #1b1b1b;
+  }
+}
