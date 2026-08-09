@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Same Windows target as the app so the production assembly can be referenced directly. -->
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RootNamespace>Plotree.Tests</RootNamespace>
+    <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</RuntimeIdentifier>
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" Version="4.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Plotree\Plotree.csproj" />
+  </ItemGroup>
+
+  <!--
+    The shipped .resw dictionaries are copied next to the tests (renamed to .xml so the
+    PRI tooling ignores them) so ExportResourceTests can validate them directly:
+    MRT Core cannot resolve resources outside the packaged/bootstrapped app.
+  -->
+  <ItemGroup>
+    <None Include="..\..\src\Plotree\Strings\en-US\Resources.resw"
+          Link="TestData\en-US.Resources.xml"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\src\Plotree\Strings\ja-JP\Resources.resw"
+          Link="TestData\ja-JP.Resources.xml"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+</Project>

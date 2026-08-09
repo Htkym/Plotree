@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Plotree.Views.NodeCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    AutomationProperties.Name="{x:Bind ViewModel.DisplayTitle, Mode=OneWay}"
+    mc:Ignorable="d">
+
+    <Grid
+        Width="{x:Bind ViewModel.EffectiveWidth, Mode=OneWay}"
+        Height="{x:Bind ViewModel.EffectiveHeight, Mode=OneWay}">
+        <Border
+            x:Name="CardBorder"
+            CornerRadius="8"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="24" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Equal-height color tag segments, in assignment order. -->
+                <Grid
+                    x:Name="TagAccentGrid"
+                    Grid.RowSpan="2"
+                    IsHitTestVisible="False" />
+
+                <!-- Node type header -->
+                <Border
+                    Grid.Column="1"
+                    CornerRadius="0,7,0,0"
+                    Background="{x:Bind HeaderBrush(ViewModel.EffectiveHeaderColor, ViewModel.Type), Mode=OneWay}"
+                    Padding="8,0">
+                    <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                        <FontIcon
+                            Glyph="{x:Bind TypeGlyph(ViewModel.Type), Mode=OneWay}"
+                            FontSize="11"
+                            Foreground="White" />
+                        <TextBlock
+                            Text="{x:Bind ViewModel.TypeName, Mode=OneWay}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Foreground="White"
+                            VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
+                <!-- The title always remains visible; the body is hidden only for title-only cards. -->
+                <Grid Grid.Column="1" Grid.Row="1" Margin="8,4,8,4">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Text="{x:Bind ViewModel.DisplayTitle, Mode=OneWay}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        TextWrapping="Wrap"
+                        TextTrimming="CharacterEllipsis"
+                        MaxLines="{x:Bind TitleMaxLines(ViewModel.EffectiveDisplayMode), Mode=OneWay}" />
+                    <TextBlock
+                        Grid.Row="1"
+                        Text="{x:Bind ViewModel.Body, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextWrapping="Wrap"
+                        TextTrimming="CharacterEllipsis"
+                        MaxLines="{x:Bind BodyMaxLines(ViewModel.EffectiveDisplayMode, ViewModel.DisplayTitle, ViewModel.EffectiveWidth, ViewModel.EffectiveHeight), Mode=OneWay}"
+                        Visibility="{x:Bind BodyVisibility(ViewModel.EffectiveDisplayMode), Mode=OneWay}"
+                        Margin="0,2,0,0" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!--
+            Selection / adjacency ring. It is drawn outside the card bounds so changing its
+            thickness never reflows the card's own content.
+        -->
+        <Border
+            x:Name="EmphasisRing"
+            Margin="-3"
+            CornerRadius="11"
+            BorderThickness="0"
+            IsHitTestVisible="False" />
+    </Grid>
+</UserControl>

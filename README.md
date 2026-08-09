@@ -1,1 +1,41 @@
 # Plotree
+
+[English](README.md) | [日本語](README.ja.md)
+
+Plotree is a Windows desktop app for outlining branching stories for novels and games. Build a flowchart of scenes, choices, and endings, then keep the writing context for each part of the story in the same project.
+
+![A branching story map in Plotree](docs/images/screenshots/01-overview-en.png)
+
+Use the canvas to connect narrative beats, edit a node's synopsis and memo in the details panel, and organize the project with color tags, characters, groups, layouts, and card appearance settings.
+
+## User manuals
+
+[English user manual](docs/user-manual.en.md) | [日本語版ユーザーマニュアル](docs/user-manual.ja.md)
+
+## Highlights
+
+- Create scene, choice, and ending nodes, then drag from a node handle to create labeled connections.
+- Select multiple nodes to move, tag, assign characters, unpin, or delete them together.
+- Combine automatic layered layout with manually pinned nodes.
+- Track node body text, writing memos, color tags, characters, and character groups.
+- Export the graph as PNG or SVG, or export story routes as Markdown or plain text.
+- Switch the interface between English and Japanese from **Settings > Language**.
+
+![Editing a selected story node](docs/images/screenshots/02-node-details-en.png)
+
+## Requirements
+
+- Windows 10 version 1809 or later, or Windows 11
+- .NET 10 SDK for building from source
+
+## Build
+
+```powershell
+dotnet build .\Plotree.slnx -p:Platform=x64
+```
+
+Use `winapp run` or the WinUI BuildAndRun workflow to launch a development build rather than starting the executable directly.
+
+## License
+
+See [LICENSE](LICENSE). Third-party notices are available in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

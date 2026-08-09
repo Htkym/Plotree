@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="Plotree.Views.PlotCanvas"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid
+        x:Name="ViewportGrid"
+        Background="Transparent"
+        AutomationProperties.AutomationId="PlotCanvasViewport">
+        <Canvas x:Name="WorldCanvas">
+            <Canvas.RenderTransform>
+                <CompositeTransform x:Name="WorldTransform" />
+            </Canvas.RenderTransform>
+            <Canvas x:Name="EdgeLayer" />
+            <Canvas x:Name="NodeLayer" />
+        </Canvas>
+
+        <!--
+            Selection marquee. It lives outside WorldCanvas on purpose: the rubber band is
+            measured in viewport pixels, so it must never inherit the pan/zoom transform.
+        -->
+        <Canvas x:Name="OverlayLayer" IsHitTestVisible="False">
+            <Border
+                x:Name="MarqueeVisual"
+                Visibility="Collapsed"
+                BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                BorderThickness="1.5"
+                CornerRadius="2"
+                AutomationProperties.AutomationId="SelectionMarquee">
+                <Rectangle Fill="{ThemeResource AccentFillColorDefaultBrush}" Opacity="0.18" />
+            </Border>
+        </Canvas>
+    </Grid>
+</UserControl>

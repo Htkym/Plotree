@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Plotree (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Plotree (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

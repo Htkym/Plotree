@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Menus (x:Uid) -->
+  <data name="MenuFile.Title" xml:space="preserve"><value>File</value></data>
+  <data name="MenuFileNew.Text" xml:space="preserve"><value>New</value></data>
+  <data name="MenuFileOpen.Text" xml:space="preserve"><value>Open…</value></data>
+  <data name="RecentFilesMenu.Text" xml:space="preserve"><value>Open Recent</value></data>
+  <data name="MenuFileSave.Text" xml:space="preserve"><value>Save</value></data>
+  <data name="MenuFileSaveAs.Text" xml:space="preserve"><value>Save As…</value></data>
+  <data name="MenuFileExport.Text" xml:space="preserve"><value>Export</value></data>
+  <data name="MenuFileExportPng.Text" xml:space="preserve"><value>PNG image (.png)…</value></data>
+  <data name="MenuFileExportSvg.Text" xml:space="preserve"><value>SVG image (.svg)…</value></data>
+  <data name="MenuFileExportMarkdown.Text" xml:space="preserve"><value>Markdown (.md)…</value></data>
+  <data name="MenuFileExportText.Text" xml:space="preserve"><value>Plain text (.txt)…</value></data>
+  <data name="MenuSettings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="MenuNodeAppearance.Text" xml:space="preserve"><value>Node appearance…</value></data>
+  <data name="MenuLanguage.Text" xml:space="preserve"><value>Language</value></data>
+  <data name="MenuLanguageSystem.Text" xml:space="preserve"><value>System default</value></data>
+
+  <!-- Toolbar (x:Uid) -->
+  <data name="TitleLabel.Text" xml:space="preserve"><value>Title</value></data>
+  <data name="AddNodeGroupLabel.Text" xml:space="preserve"><value>Add node</value></data>
+  <data name="AddSceneLabel.Text" xml:space="preserve"><value>Scene</value></data>
+  <data name="AddChoiceLabel.Text" xml:space="preserve"><value>Choice</value></data>
+  <data name="AddEndingLabel.Text" xml:space="preserve"><value>Ending</value></data>
+  <data name="ColorTagGroupLabel.Text" xml:space="preserve"><value>Color tag</value></data>
+  <data name="LayoutGroupLabel.Text" xml:space="preserve"><value>Layout</value></data>
+  <data name="AutoLayoutLabel.Text" xml:space="preserve"><value>Auto layout</value></data>
+  <data name="RelayoutAllItem.Text" xml:space="preserve"><value>Re-layout all (clear pins)</value></data>
+  <data name="AppearanceSettingsLabel.Text" xml:space="preserve"><value>Appearance</value></data>
+  <data name="NodesLabel.Text" xml:space="preserve"><value>Nodes:</value></data>
+  <data name="ColorTagCombo.PlaceholderText" xml:space="preserve"><value>No tag</value></data>
+  <data name="NewTagNameBox.Header" xml:space="preserve"><value>New tag name</value></data>
+  <data name="TagColorHint.Text" xml:space="preserve"><value>Pick a color to create the tag and apply it to every selected node</value></data>
+  <data name="TagAssignmentHint.Text" xml:space="preserve"><value>With one node selected, each tag is checked or unchecked. With multiple nodes, a dash means the tag is assigned to only some selected nodes.</value></data>
+  <data name="ManageTagsTitle.Text" xml:space="preserve"><value>Manage color tags</value></data>
+  <data name="ManagedTagCombo.Header" xml:space="preserve"><value>Color tag</value></data>
+  <data name="EditTagButton.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="DeleteTagButton.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="CharactersGroupLabel.Text" xml:space="preserve"><value>Characters</value></data>
+  <data name="CharacterAssignLabel.Text" xml:space="preserve"><value>Assign</value></data>
+  <data name="CharacterAssignmentHint.Text" xml:space="preserve"><value>With one node selected, each character is checked or unchecked. With multiple nodes, a dash means the character is assigned to only some selected nodes.</value></data>
+  <data name="CharacterGroup_NoGroup" xml:space="preserve"><value>No group</value></data>
+  <data name="ManageCharactersLabel.Text" xml:space="preserve"><value>Characters</value></data>
+  <data name="ManageGroupsLabel.Text" xml:space="preserve"><value>Groups</value></data>
+  <data name="ManageCharactersTitle.Text" xml:space="preserve"><value>Manage characters</value></data>
+  <data name="ManageGroupsTitle.Text" xml:space="preserve"><value>Manage character groups</value></data>
+  <data name="CharacterMembershipTitle.Text" xml:space="preserve"><value>Group membership</value></data>
+  <data name="ManagedCharacterCombo.Header" xml:space="preserve"><value>Character</value></data>
+  <data name="EditCharacterButton.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="DeleteCharacterButton.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="NewGroupNameBox.Header" xml:space="preserve"><value>New group name</value></data>
+  <data name="AddGroupButton.Content" xml:space="preserve"><value>Add group</value></data>
+  <data name="ManagedGroupCombo.Header" xml:space="preserve"><value>Group</value></data>
+  <data name="EditGroupButton.Content" xml:space="preserve"><value>Edit</value></data>
+  <data name="DeleteGroupButton.Content" xml:space="preserve"><value>Delete</value></data>
+
+  <!-- Details panel (x:Uid) -->
+  <data name="DetailsHeader.Text" xml:space="preserve"><value>Details</value></data>
+  <data name="DetailsHint.Text" xml:space="preserve"><value>Select a node or a connection to edit it. Drag empty canvas to rubber-band select, hold Ctrl or Shift to add, and press Ctrl+A to select every node.</value></data>
+  <data name="NodeTitleBox.Header" xml:space="preserve"><value>Title</value></data>
+  <data name="NodeTypeCombo.Header" xml:space="preserve"><value>Type</value></data>
+  <data name="NodeBodyBox.Header" xml:space="preserve"><value>Body</value></data>
+  <data name="NodeMemoBox.Header" xml:space="preserve"><value>Memo</value></data>
+  <data name="NodeAppearanceLabel.Text" xml:space="preserve"><value>Appearance</value></data>
+  <data name="NodeAppearanceHint.Text" xml:space="preserve"><value>Overrides the defaults of this node's type. Empty values follow the type.</value></data>
+  <data name="NodeHeaderColorLabel.Text" xml:space="preserve"><value>Header color</value></data>
+  <data name="NodeDisplayModeCombo.Header" xml:space="preserve"><value>Card display</value></data>
+  <data name="NodeDisplayModeDefault.Content" xml:space="preserve"><value>Type default</value></data>
+  <data name="NodeDisplayModeFull.Content" xml:space="preserve"><value>Title + body</value></data>
+  <data name="NodeDisplayModeCompact.Content" xml:space="preserve"><value>Title + one line</value></data>
+  <data name="NodeDisplayModeTitleOnly.Content" xml:space="preserve"><value>Title only</value></data>
+  <data name="NodeResetSizeButton.Content" xml:space="preserve"><value>Reset card size</value></data>
+  <data name="CharactersLabel.Text" xml:space="preserve"><value>Characters</value></data>
+  <data name="SelectionTagsLabel.Text" xml:space="preserve"><value>Tags</value></data>
+  <data name="SelectionCharactersLabel.Text" xml:space="preserve"><value>Characters</value></data>
+  <data name="NewCharacterBox.PlaceholderText" xml:space="preserve"><value>Character name</value></data>
+  <data name="AddCharacterButton.Content" xml:space="preserve"><value>Add</value></data>
+  <data name="EdgeLabelBox.Header" xml:space="preserve"><value>Choice label</value></data>
+  <data name="EdgeLabelHint.Text" xml:space="preserve"><value>Shown on the connection — e.g. the choice the reader makes.</value></data>
+
+  <!-- Multi-selection pane (x:Uid) -->
+  <data name="MultiSelectionHint.Text" xml:space="preserve"><value>These actions apply to every selected node. Drag any one of them to move the whole selection.</value></data>
+  <data name="BulkUnpinButton.Content" xml:space="preserve"><value>Unpin selected nodes</value></data>
+  <data name="BulkDeleteButton.Content" xml:space="preserve"><value>Delete selected nodes</value></data>
+
+  <!-- Node appearance dialog (x:Uid) -->
+  <data name="AppearanceDialogHint.Text" xml:space="preserve"><value>These values apply to every node of the selected type, unless the node overrides them.</value></data>
+  <data name="AppearanceTypeCombo.Header" xml:space="preserve"><value>Node type</value></data>
+  <data name="TypeHeaderColorLabel.Text" xml:space="preserve"><value>Header color</value></data>
+  <data name="TypeWidthBox.Header" xml:space="preserve"><value>Width</value></data>
+  <data name="TypeHeightBox.Header" xml:space="preserve"><value>Height</value></data>
+  <data name="TypeDisplayModeCombo.Header" xml:space="preserve"><value>Card display</value></data>
+  <data name="TypeDisplayModeFull.Content" xml:space="preserve"><value>Title + body</value></data>
+  <data name="TypeDisplayModeCompact.Content" xml:space="preserve"><value>Title + one line</value></data>
+  <data name="TypeDisplayModeTitleOnly.Content" xml:space="preserve"><value>Title only</value></data>
+  <data name="ResetTypeAppearanceButton.Content" xml:space="preserve"><value>Reset this type to built-in defaults</value></data>
+
+  <!-- Tooltips (code) -->
+  <data name="Tooltip_DeleteSelected" xml:space="preserve"><value>Delete everything selected (Del)</value></data>
+  <data name="Tooltip_TogglePanel" xml:space="preserve"><value>Show or hide the details panel</value></data>
+  <data name="Tooltip_AutoLayout" xml:space="preserve"><value>Lay out unpinned nodes automatically</value></data>
+  <data name="Tooltip_LayoutDirection" xml:space="preserve"><value>Layout direction</value></data>
+  <data name="Tooltip_RemoveTag" xml:space="preserve"><value>Remove all color tags from the selected nodes</value></data>
+  <data name="Tooltip_NewTag" xml:space="preserve"><value>New tag</value></data>
+  <data name="Tooltip_EditItem" xml:space="preserve"><value>Edit</value></data>
+  <data name="Tooltip_DeleteItem" xml:space="preserve"><value>Delete</value></data>
+  <data name="Tooltip_DragToConnect" xml:space="preserve"><value>Drag to another node to connect</value></data>
+  <data name="Tooltip_DragToResize" xml:space="preserve"><value>Drag to resize this card</value></data>
+  <data name="Tooltip_Appearance" xml:space="preserve"><value>Node appearance settings for this project</value></data>
+  <data name="Tooltip_ResetHeaderColor" xml:space="preserve"><value>Reset to the default color</value></data>
+  <data name="Tooltip_UnpinSelected" xml:space="preserve"><value>Return every selected node to auto layout</value></data>
+
+  <!-- Selection (code) -->
+  <data name="Selection_NodeCount" xml:space="preserve"><value>{0} nodes selected</value></data>
+  <data name="Summary_None" xml:space="preserve"><value>None</value></data>
+  <data name="Summary_Tags" xml:space="preserve"><value>Tags: {0}</value></data>
+  <data name="Summary_Characters" xml:space="preserve"><value>Characters: {0}</value></data>
+  <data name="Summary_Groups" xml:space="preserve"><value>Groups: {0}</value></data>
+  <data name="State_Selected" xml:space="preserve"><value>Selected</value></data>
+  <data name="State_Related" xml:space="preserve"><value>Connected to the selection</value></data>
+  <data name="Automation_Canvas" xml:space="preserve"><value>Plot canvas</value></data>
+  <data name="Automation_Marquee" xml:space="preserve"><value>Selection rectangle</value></data>
+  <data name="Automation_Edge" xml:space="preserve"><value>Connection: {0} to {1}</value></data>
+  <data name="Help_CanvasGestures" xml:space="preserve"><value>Drag empty canvas to select nodes, Ctrl or Shift to add to the selection, Ctrl+A to select all, middle button or Space and drag to pan, Ctrl and wheel to zoom.</value></data>
+
+  <!-- Layout direction combo (code) -->
+  <data name="Direction_LeftToRight" xml:space="preserve"><value>→  Left to right</value></data>
+  <data name="Direction_TopToBottom" xml:space="preserve"><value>↓  Top to bottom</value></data>
+
+  <!-- Node types (code) -->
+  <data name="NodeType_Scene" xml:space="preserve"><value>Scene</value></data>
+  <data name="NodeType_Choice" xml:space="preserve"><value>Choice</value></data>
+  <data name="NodeType_Ending" xml:space="preserve"><value>Ending</value></data>
+
+  <!-- Default titles (code) -->
+  <data name="Default_ProjectTitle" xml:space="preserve"><value>Untitled</value></data>
+  <data name="Default_NewScene" xml:space="preserve"><value>New scene</value></data>
+  <data name="Default_NewChoice" xml:space="preserve"><value>New choice</value></data>
+  <data name="Default_NewEnding" xml:space="preserve"><value>New ending</value></data>
+  <data name="Default_UntitledNode" xml:space="preserve"><value>(untitled)</value></data>
+
+  <!-- Menus / context menus (code) -->
+  <data name="Menu_NoRecentFiles" xml:space="preserve"><value>No recent files</value></data>
+  <data name="Context_AddSceneHere" xml:space="preserve"><value>Add scene here</value></data>
+  <data name="Context_AddChoiceHere" xml:space="preserve"><value>Add choice here</value></data>
+  <data name="Context_AddEndingHere" xml:space="preserve"><value>Add ending here</value></data>
+  <data name="Context_DeleteNode" xml:space="preserve"><value>Delete node</value></data>
+  <data name="Context_DeleteNodes" xml:space="preserve"><value>Delete {0} selected nodes</value></data>
+  <data name="Context_DeleteEdge" xml:space="preserve"><value>Delete connection</value></data>
+  <data name="Context_Unpin" xml:space="preserve"><value>Unpin from auto layout</value></data>
+  <data name="Context_UnpinSelected" xml:space="preserve"><value>Unpin {0} selected nodes</value></data>
+  <data name="Context_SelectAll" xml:space="preserve"><value>Select all nodes (Ctrl+A)</value></data>
+
+  <!-- Dialogs (code) -->
+  <data name="Dialog_UnsavedTitle" xml:space="preserve"><value>Unsaved changes</value></data>
+  <data name="Dialog_UnsavedContent" xml:space="preserve"><value>"{0}" has unsaved changes. Do you want to save them?</value></data>
+  <data name="Dialog_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Dialog_Discard" xml:space="preserve"><value>Discard</value></data>
+  <data name="Dialog_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Dialog_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Dialog_DeleteNodeTitle" xml:space="preserve"><value>Delete node</value></data>
+  <data name="Dialog_DeleteNodeContent" xml:space="preserve"><value>Delete "{0}"? Its text will be lost.</value></data>
+  <data name="Dialog_DeleteNodesTitle" xml:space="preserve"><value>Delete nodes</value></data>
+  <data name="Dialog_DeleteNodesContent" xml:space="preserve"><value>Delete {0} selected nodes? Their text and every connection to them will be lost.</value></data>
+  <data name="Dialog_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Dialog_EditTagTitle" xml:space="preserve"><value>Edit color tag</value></data>
+  <data name="Dialog_DeleteTagTitle" xml:space="preserve"><value>Delete color tag</value></data>
+  <data name="Dialog_DeleteTagContent" xml:space="preserve"><value>Delete "{0}"? It will be removed from every node.</value></data>
+  <data name="Dialog_EditCharacterTitle" xml:space="preserve"><value>Edit character</value></data>
+  <data name="Dialog_DeleteCharacterTitle" xml:space="preserve"><value>Delete character</value></data>
+  <data name="Dialog_DeleteCharacterContent" xml:space="preserve"><value>Delete "{0}"? The character will be removed from every node and group.</value></data>
+  <data name="Dialog_EditGroupTitle" xml:space="preserve"><value>Edit group</value></data>
+  <data name="Dialog_DeleteGroupTitle" xml:space="preserve"><value>Delete group</value></data>
+  <data name="Dialog_DeleteGroupContent" xml:space="preserve"><value>Delete "{0}"? Its membership references will be removed from every character.</value></data>
+  <data name="Dialog_InvalidEditTitle" xml:space="preserve"><value>Could not save changes</value></data>
+  <data name="Dialog_InvalidEditContent" xml:space="preserve"><value>Enter a non-empty, unique name and a valid color value.</value></data>
+  <data name="Field_TagName" xml:space="preserve"><value>Tag name</value></data>
+  <data name="Field_TagColor" xml:space="preserve"><value>Color (hex)</value></data>
+  <data name="Field_CharacterName" xml:space="preserve"><value>Character name</value></data>
+  <data name="Field_GroupName" xml:space="preserve"><value>Group name</value></data>
+  <data name="Dialog_AppearanceTitle" xml:space="preserve"><value>Node appearance</value></data>
+  <data name="Dialog_ExportDoneTitle" xml:space="preserve"><value>Export complete</value></data>
+  <data name="Dialog_ExportDoneContent" xml:space="preserve"><value>Exported to "{0}".</value></data>
+  <data name="Dialog_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Dialog_LanguageTitle" xml:space="preserve"><value>Language changed</value></data>
+  <data name="Dialog_LanguageContent" xml:space="preserve"><value>The new language will be applied the next time you launch Plotree.</value></data>
+
+  <!-- Errors (code) -->
+  <data name="Error_OpenTitle" xml:space="preserve"><value>Could not open project</value></data>
+  <data name="Error_SaveTitle" xml:space="preserve"><value>Could not save project</value></data>
+  <data name="Error_ExportTitle" xml:space="preserve"><value>Could not export</value></data>
+  <data name="Error_ExportContent" xml:space="preserve"><value>The file could not be exported.</value></data>
+  <data name="Error_PngExportContent" xml:space="preserve"><value>The PNG image could not be exported.</value></data>
+  <data name="Error_SvgExportContent" xml:space="preserve"><value>The SVG image could not be exported.</value></data>
+  <data name="Error_FileNotFoundTitle" xml:space="preserve"><value>File not found</value></data>
+  <data name="Error_FileNotFoundContent" xml:space="preserve"><value>"{0}" no longer exists. It was removed from the recent files list.</value></data>
+
+  <!-- File pickers (code) -->
+  <data name="Picker_ProjectType" xml:space="preserve"><value>Plotree project</value></data>
+  <data name="Picker_MarkdownType" xml:space="preserve"><value>Markdown</value></data>
+  <data name="Picker_TextType" xml:space="preserve"><value>Plain text</value></data>
+  <data name="Picker_PngType" xml:space="preserve"><value>PNG image</value></data>
+  <data name="Picker_SvgType" xml:space="preserve"><value>SVG image</value></data>
+
+  <!-- Export (code) -->
+  <data name="Export_Route" xml:space="preserve"><value>Route {0}: {1}</value></data>
+  <data name="Export_Choice" xml:space="preserve"><value>Choice: {0}</value></data>
+  <data name="Export_Body" xml:space="preserve"><value>Body</value></data>
+  <data name="Export_Memo" xml:space="preserve"><value>Memo</value></data>
+  <data name="Export_Empty" xml:space="preserve"><value>(empty)</value></data>
+  <data name="Export_Warnings" xml:space="preserve"><value>Warnings</value></data>
+  <data name="Export_DeadEnd" xml:space="preserve"><value>Dead end: "{0}" ({1}) has no outgoing connections.</value></data>
+  <data name="Export_Unreachable" xml:space="preserve"><value>Unreachable: "{0}" ({1}) cannot be reached from any root node.</value></data>
+  <data name="Export_NoEndings" xml:space="preserve"><value>This project has no Ending nodes yet — all maximal paths are exported instead of routes.</value></data>
+  <data name="Export_NoRoutes" xml:space="preserve"><value>No routes were found from the root nodes of this graph.</value></data>
+  <data name="Export_Truncated" xml:space="preserve"><value>Route list truncated at {0} routes.</value></data>
+</root>
