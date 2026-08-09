@@ -1,6 +1,10 @@
 ---
-layout: default
-title: Privacy Policy - Plotree
+title: "Privacy Policy"
+date: "2026-08-09T00:00:00Z"
+summary: "How Plotree handles data: entirely offline, with no telemetry or personal-data collection."
+tags:
+  - privacy
+  - English
 ---
 
 # Privacy Policy
