@@ -6,13 +6,19 @@
 
 WinUI 3 (Windows App SDK) 製の Windows デスクトップアプリです。
 
-![分岐ストーリーを設計するPlotreeのキャンバス](docs/images/screenshots/01-overview-ja.png)
+![分岐ストーリーを設計するPlotreeのキャンバス](site/images/screenshots/01-overview-ja.png)
 
 ノード、選択肢、接続線を使って物語の流れを組み立て、タグ・登場人物・レイアウト・外観を一つのプロジェクトで管理できます。
 
 ## ユーザーマニュアル
 
-[日本語版ユーザーマニュアル](docs/user-manual.ja.md) | [English user manual](docs/user-manual.en.md)
+[日本語版ユーザーマニュアル](https://htkym.github.io/Plotree/posts/user-manual-ja.html) | [English user manual](https://htkym.github.io/Plotree/posts/user-manual-en.html)
+
+## サポート
+
+不具合報告、機能要望、使い方の質問は [GitHub Issue](https://github.com/Htkym/Plotree/issues/new/choose) で受け付けます。私的な作品内容を含む `.plotree` ファイルやスクリーンショットは添付しないでください。
+
+詳しくは [サポート案内](SUPPORT.md) と [プライバシーポリシー](https://htkym.github.io/Plotree/posts/privacy-policy-ja.html) を参照してください。
 
 ## 特徴
 
