@@ -10,13 +10,13 @@ Use the canvas to connect narrative beats, edit a node's synopsis and memo in th
 
 ## User manuals
 
-[English user manual](docs/user-manual.en.md) | [日本語版ユーザーマニュアル](docs/user-manual.ja.md)
+[English user manual](https://htkym.github.io/Plotree/posts/user-manual-en.html) | [日本語版ユーザーマニュアル](https://htkym.github.io/Plotree/posts/user-manual-ja.html)
 
 ## Support
 
 Use [GitHub Issues](https://github.com/Htkym/Plotree/issues/new/choose) for bug reports, feature requests, and usage questions. Do not attach `.plotree` files or screenshots containing private story material.
 
-See [Support](SUPPORT.md) and the [privacy policy](docs/privacy-policy.md) for details.
+See [Support](SUPPORT.md) and the [privacy policy](https://htkym.github.io/Plotree/posts/privacy-policy-en.html) for details.
 
 ## Highlights
 

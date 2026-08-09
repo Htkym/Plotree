@@ -1,15 +1,19 @@
 ---
-layout: default
-title: Plotree ユーザーマニュアル
+title: "Plotree ユーザーマニュアル"
+date: "2026-08-09T00:00:00Z"
+summary: "Plotreeで分岐する物語の作成、接続、整理、配置、出力を行うための手順です。"
+tags:
+  - manual
+  - Japanese
 ---
 
 # Plotree ユーザーマニュアル
 
-[English](user-manual.en.html) | [日本語](user-manual.ja.html)
+[English](user-manual-en.html) | [日本語](user-manual-ja.html)
 
 Plotree は、小説やゲームの分岐する物語をグラフとして設計するアプリです。プロジェクトには、物語の流れ、ノードの本文とメモ、タグ、登場人物、グループ、外観設定をまとめて保存できます。
 
-![Plotreeで作成した分岐ストーリーの全体図](images/screenshots/01-overview-ja.png)
+![Plotreeで作成した分岐ストーリーの全体図](../images/screenshots/01-overview-ja.png)
 
 ## プロジェクトを始める
 
@@ -25,7 +29,7 @@ Plotree は、小説やゲームの分岐する物語をグラフとして設計
 4. 接続線を選択し、選択肢ラベルを入力します。
 5. エンディングを追加して、複数の結末を設計します。
 
-![選択したノードを編集する画面](images/screenshots/02-node-details-ja.png)
+![選択したノードを編集する画面](../images/screenshots/02-node-details-ja.png)
 
 エンディングノードには出力用の接続ハンドルがありません。また、自己接続、重複接続、Start ノードを対象にした接続は作成できません。
 
@@ -35,7 +39,7 @@ Plotree は、小説やゲームの分岐する物語をグラフとして設計
 
 **人物**から登場人物を作成し、**グループ**で整理できます。人物は複数のグループに所属できます。ノードを選択した状態で **割り当て** を使うと、シーンや選択肢に登場人物を関連付けられます。右の詳細パネルには、タグと登場人物の要約が表示されます。
 
-![登場人物と所属グループを管理する画面](images/screenshots/03-characters-ja.png)
+![登場人物と所属グループを管理する画面](../images/screenshots/03-characters-ja.png)
 
 ## グラフを整える
 
@@ -57,7 +61,7 @@ Plotree は、小説やゲームの分岐する物語をグラフとして設計
 
 **外観**を選択すると、シーン、選択肢、エンディングごとにヘッダー色、幅、高さ、カード表示を設定できます。選択したノードは、右の詳細パネルで種類ごとの既定を個別に上書きできます。リセット操作で該当する既定値に戻せます。
 
-![ノードの外観を設定する画面](images/screenshots/04-appearance-ja.png)
+![ノードの外観を設定する画面](../images/screenshots/04-appearance-ja.png)
 
 ## 安全に編集する
 

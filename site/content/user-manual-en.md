@@ -1,15 +1,19 @@
 ---
-layout: default
-title: Plotree User Manual
+title: "Plotree User Manual"
+date: "2026-08-09T00:00:00Z"
+summary: "Create, connect, organize, arrange, and export branching story projects in Plotree."
+tags:
+  - manual
+  - English
 ---
 
 # Plotree User Manual
 
-[English](user-manual.en.html) | [日本語](user-manual.ja.html)
+[English](user-manual-en.html) | [日本語](user-manual-ja.html)
 
 Plotree helps writers design a branching narrative as a connected graph. A project contains the story flow, node text, writing notes, tags, characters, groups, and appearance settings.
 
-![A branching story map in Plotree](images/screenshots/01-overview-en.png)
+![A branching story map in Plotree](../images/screenshots/01-overview-en.png)
 
 ## Start a project
 
@@ -25,7 +29,7 @@ To open an existing project when launching the app, pass its `.plotree` path as 
 4. Select a connection to give it a choice label.
 5. Add more endings to show alternate outcomes.
 
-![Editing a selected story node](images/screenshots/02-node-details-en.png)
+![Editing a selected story node](../images/screenshots/02-node-details-en.png)
 
 Ending nodes do not offer outgoing connection handles. Plotree also prevents self-connections, duplicate connections, and connections that target the start node.
 
@@ -35,7 +39,7 @@ Create color tags from the **Color tag** toolbar group, then use the tag picker 
 
 Use **Characters** to create people in the story and **Groups** to organize them. A character may belong to more than one group. Select nodes and use **Assign** to associate characters with those scenes or choices. The details panel summarizes the assigned tags and characters.
 
-![Managing characters and group membership](images/screenshots/03-characters-en.png)
+![Managing characters and group membership](../images/screenshots/03-characters-en.png)
 
 ## Arrange the graph
 
@@ -57,7 +61,7 @@ The canvas supports these gestures:
 
 Select **Appearance** to configure default header color, width, height, and card display for scenes, choices, or endings. A selected node can override its type's defaults in the details panel. Use the reset controls to return to the applicable defaults.
 
-![Configuring node appearance](images/screenshots/04-appearance-en.png)
+![Configuring node appearance](../images/screenshots/04-appearance-en.png)
 
 ## Edit safely
 

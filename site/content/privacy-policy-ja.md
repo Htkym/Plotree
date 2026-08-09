@@ -1,6 +1,10 @@
 ---
-layout: default
-title: プライバシーポリシー - Plotree
+title: "プライバシーポリシー"
+date: "2026-08-09T00:00:00Z"
+summary: "Plotreeにおけるデータの取り扱い。個人データは収集せず、アプリはローカル環境で動作します。"
+tags:
+  - privacy
+  - Japanese
 ---
 
 # プライバシーポリシー
