@@ -4,7 +4,7 @@ Describe the problem and the change in a few sentences.
 
 ## Changes
 
-- 
+- Describe the primary implementation changes.
 
 ## Validation
 
