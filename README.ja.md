@@ -6,7 +6,7 @@
 
 WinUI 3 (Windows App SDK) 製の Windows デスクトップアプリです。
 
-![分岐ストーリーを設計するPlotreeのキャンバス](docs/images/screenshots/01-overview-ja.png)
+![分岐ストーリーを設計するPlotreeのキャンバス](site/images/screenshots/01-overview-ja.png)
 
 ノード、選択肢、接続線を使って物語の流れを組み立て、タグ・登場人物・レイアウト・外観を一つのプロジェクトで管理できます。
 

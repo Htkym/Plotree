@@ -4,7 +4,7 @@
 
 Plotree is a Windows desktop app for outlining branching stories for novels and games. Build a flowchart of scenes, choices, and endings, then keep the writing context for each part of the story in the same project.
 
-![A branching story map in Plotree](docs/images/screenshots/01-overview-en.png)
+![A branching story map in Plotree](site/images/screenshots/01-overview-en.png)
 
 Use the canvas to connect narrative beats, edit a node's synopsis and memo in the details panel, and organize the project with color tags, characters, groups, layouts, and card appearance settings.
 
@@ -27,7 +27,7 @@ See [Support](SUPPORT.md) and the [privacy policy](https://htkym.github.io/Plotr
 - Export the graph as PNG or SVG, or export story routes as Markdown or plain text.
 - Switch the interface between English and Japanese from **Settings > Language**.
 
-![Editing a selected story node](docs/images/screenshots/02-node-details-en.png)
+![Editing a selected story node](site/images/screenshots/02-node-details-en.png)
 
 ## Requirements
 
