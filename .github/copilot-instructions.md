@@ -10,7 +10,13 @@
   ```
 
 - For an interactive launch, invoke the `winui-dev-workflow` skill and use its `BuildAndRun.ps1` workflow. Do not rely on `dotnet run`; this project uses `WindowsPackageType=None`.
-- There is currently no test project or test framework, so there is no full-suite or single-test command. There is also no repository-defined lint or formatting command.
+- Run the test project with an explicit platform:
+
+  ```powershell
+  dotnet test .\tests\Plotree.Tests\Plotree.Tests.csproj -p:Platform=x64
+  ```
+
+  There is no repository-defined lint or formatting command.
 
 ## Architecture
 
