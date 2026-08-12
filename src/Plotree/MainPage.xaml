@@ -745,7 +745,7 @@
                             <TextBox
                                 x:Name="NodeTitleBox"
                                 x:Uid="NodeTitleBox"
-                                Text="{x:Bind ViewModel.SelectedNode.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{x:Bind ViewModel.SelectedNodeTitle, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 GotFocus="OnNodeTitleGotFocus"
                                 LostFocus="OnTextEditLostFocus"
                                 AutomationProperties.AutomationId="NodeTitleBox" />
@@ -754,13 +754,13 @@
                                 x:Name="NodeTypeCombo"
                                 x:Uid="NodeTypeCombo"
                                 HorizontalAlignment="Stretch"
-                                SelectedIndex="{x:Bind ViewModel.SelectedNode.TypeIndex, Mode=TwoWay}"
-                                IsEnabled="{x:Bind ViewModel.SelectedNode.IsTypeEditable, Mode=OneWay}"
+                                SelectedIndex="{x:Bind ViewModel.SelectedNodeTypeIndex, Mode=TwoWay}"
+                                IsEnabled="{x:Bind ViewModel.IsSelectedNodeTypeEditable, Mode=OneWay}"
                                 AutomationProperties.AutomationId="NodeTypeCombo" />
 
                             <TextBox
                                 x:Uid="NodeBodyBox"
-                                Text="{x:Bind ViewModel.SelectedNode.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{x:Bind ViewModel.SelectedNodeBody, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 GotFocus="OnNodeBodyGotFocus"
                                 LostFocus="OnTextEditLostFocus"
                                 AcceptsReturn="True"
@@ -771,7 +771,7 @@
 
                             <TextBox
                                 x:Uid="NodeMemoBox"
-                                Text="{x:Bind ViewModel.SelectedNode.Memo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{x:Bind ViewModel.SelectedNodeMemo, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 GotFocus="OnNodeMemoGotFocus"
                                 LostFocus="OnTextEditLostFocus"
                                 AcceptsReturn="True"
@@ -835,7 +835,7 @@
                             Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.IsEdgeSelected), Mode=OneWay}">
                             <TextBox
                                 x:Uid="EdgeLabelBox"
-                                Text="{x:Bind ViewModel.SelectedEdge.LabelText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Text="{x:Bind ViewModel.SelectedEdgeLabelText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                 GotFocus="OnEdgeLabelGotFocus"
                                 LostFocus="OnTextEditLostFocus"
                                 AutomationProperties.AutomationId="EdgeLabelBox" />

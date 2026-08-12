@@ -7,14 +7,19 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
     <Platforms>x86;x64;ARM64</Platforms>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' == 'x86'">win-x86</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' == 'x64'">win-x64</RuntimeIdentifier>
+    <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == '' and '$(Platform)' == 'ARM64'">win-arm64</RuntimeIdentifier>
     <RuntimeIdentifier Condition="'$(RuntimeIdentifier)' == ''">win-$([System.Runtime.InteropServices.RuntimeInformation]::ProcessArchitecture.ToString().ToLowerInvariant())</RuntimeIdentifier>
+    <RuntimeIdentifiers Condition="'$(Configuration)' != 'Debug'">win-x64;win-arm64</RuntimeIdentifiers>
     <PublishProfile Condition="Exists('Properties\PublishProfiles\win-$(Platform).pubxml')">win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <!-- Debug: unpackaged (開発用) / Release: MSIX (Store 配布用) -->
     <WindowsPackageType Condition="'$(Configuration)' == 'Debug'">None</WindowsPackageType>
     <WindowsPackageType Condition="'$(Configuration)' != 'Debug'">MSIX</WindowsPackageType>
-    <WindowsAppSDKSelfContained Condition="'$(Configuration)' == 'Debug'">true</WindowsAppSDKSelfContained>
-    <WindowsAppSDKSelfContained Condition="'$(Configuration)' != 'Debug'">false</WindowsAppSDKSelfContained>
+    <!-- Include the Windows App SDK in every artifact so launch does not depend on a
+         matching Windows App Runtime installation on the target device. -->
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
     <WinUISDKReferences Condition="'$(Configuration)' == 'Debug'">false</WinUISDKReferences>
     <EnableMsixTooling>true</EnableMsixTooling>
     <!-- MSIX バンドル設定 -->
@@ -22,7 +27,7 @@
     <AppxBundlePlatforms>x64|ARM64</AppxBundlePlatforms>
     <GenerateAppInstallerFile>false</GenerateAppInstallerFile>
     <!-- MSIX 署名証明書 -->
-    <PackageCertificateKeyFile Condition="'$(Configuration)' != 'Debug'">plotree_sign.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile Condition="'$(Configuration)' != 'Debug' and '$(PackageCertificateThumbprint)' == ''">$(MSBuildProjectDirectory)\plotree_sign.pfx</PackageCertificateKeyFile>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -69,6 +74,15 @@
     <PackageReference Include="Svg.Skia" Version="5.2.0" />
   </ItemGroup>
 
+  <Target Name="UseVersionedAppxPackageDirectory"
+          DependsOnTargets="_ValidatePresenceOfAppxManifestItems"
+          BeforeTargets="_ComputeAppxPackageOutput"
+          Condition="'$(Configuration)' != 'Debug'">
+    <PropertyGroup>
+      <AppxPackageTestDir>$(ProjectDir)AppPackages\$(AppxManifestIdentityVersion)\</AppxPackageTestDir>
+    </PropertyGroup>
+  </Target>
+
   <!--
     Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
     Explorer "Package and Publish" context menu entry to be enabled for this project even if
@@ -83,6 +97,7 @@
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
-    <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+    <!-- Keep Release untrimmed. WinUI/XAML resolves types and metadata at runtime,
+         and the SDK default preserves the required metadata without trim switches. -->
   </PropertyGroup>
 </Project>

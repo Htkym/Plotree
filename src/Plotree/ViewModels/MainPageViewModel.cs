@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
@@ -91,6 +92,68 @@ public partial class MainPageViewModel : ObservableObject
     public bool HasSelectedCharacter => SelectedCharacter is not null;
     public bool HasSelectedTag => SelectedTag is not null;
     public bool HasSelectedGroup => SelectedGroup is not null;
+
+    public string SelectedNodeTitle
+    {
+        get => SelectedNode?.Title ?? string.Empty;
+        set
+        {
+            if (SelectedNode is { } node)
+            {
+                node.Title = value;
+            }
+        }
+    }
+
+    public int SelectedNodeTypeIndex
+    {
+        get => SelectedNode?.TypeIndex ?? -1;
+        set
+        {
+            if (SelectedNode is { } node)
+            {
+                node.TypeIndex = value;
+            }
+        }
+    }
+
+    public bool IsSelectedNodeTypeEditable => SelectedNode?.IsTypeEditable ?? false;
+
+    public string SelectedNodeBody
+    {
+        get => SelectedNode?.Body ?? string.Empty;
+        set
+        {
+            if (SelectedNode is { } node)
+            {
+                node.Body = value;
+            }
+        }
+    }
+
+    public string SelectedNodeMemo
+    {
+        get => SelectedNode?.Memo ?? string.Empty;
+        set
+        {
+            if (SelectedNode is { } node)
+            {
+                node.Memo = value;
+            }
+        }
+    }
+
+    public string SelectedEdgeLabelText
+    {
+        get => SelectedEdge?.LabelText ?? string.Empty;
+        set
+        {
+            if (SelectedEdge is { } edge)
+            {
+                edge.LabelText = value;
+            }
+        }
+    }
 
     public ObservableCollection<string> RecentFiles { get; } = [];
     public ObservableCollection<NodeViewModel> Nodes { get; } = [];
@@ -1689,8 +1752,71 @@ public partial class MainPageViewModel : ObservableObject
 
     partial void OnSelectedNodeChanged(NodeViewModel? value)
     {
+        if (_editorNode is not null)
+        {
+            _editorNode.PropertyChanged -= OnSelectedNodePropertyChanged;
+        }
+
+        _editorNode = value;
+        if (_editorNode is not null)
+        {
+            _editorNode.PropertyChanged += OnSelectedNodePropertyChanged;
+        }
+
+        OnPropertyChanged(nameof(SelectedNodeTitle));
+        OnPropertyChanged(nameof(SelectedNodeTypeIndex));
+        OnPropertyChanged(nameof(IsSelectedNodeTypeEditable));
+        OnPropertyChanged(nameof(SelectedNodeBody));
+        OnPropertyChanged(nameof(SelectedNodeMemo));
         OnPropertyChanged(nameof(NodeDisplayModeIndex));
         NotifyNodeAppearanceChanged();
+    }
+
+    partial void OnSelectedEdgeChanged(EdgeViewModel? value)
+    {
+        if (_editorEdge is not null)
+        {
+            _editorEdge.PropertyChanged -= OnSelectedEdgePropertyChanged;
+        }
+
+        _editorEdge = value;
+        if (_editorEdge is not null)
+        {
+            _editorEdge.PropertyChanged += OnSelectedEdgePropertyChanged;
+        }
+
+        OnPropertyChanged(nameof(SelectedEdgeLabelText));
+    }
+
+    private NodeViewModel? _editorNode;
+    private EdgeViewModel? _editorEdge;
+
+    private void OnSelectedNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        switch (e.PropertyName)
+        {
+            case nameof(NodeViewModel.Title):
+                OnPropertyChanged(nameof(SelectedNodeTitle));
+                break;
+            case nameof(NodeViewModel.TypeIndex):
+                OnPropertyChanged(nameof(SelectedNodeTypeIndex));
+                OnPropertyChanged(nameof(IsSelectedNodeTypeEditable));
+                break;
+            case nameof(NodeViewModel.Body):
+                OnPropertyChanged(nameof(SelectedNodeBody));
+                break;
+            case nameof(NodeViewModel.Memo):
+                OnPropertyChanged(nameof(SelectedNodeMemo));
+                break;
+        }
+    }
+
+    private void OnSelectedEdgePropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(EdgeViewModel.LabelText))
+        {
+            OnPropertyChanged(nameof(SelectedEdgeLabelText));
+        }
     }
 
     partial void OnSelectedCharacterChanged(CharacterOptionViewModel? value)
