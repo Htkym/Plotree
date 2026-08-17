@@ -25,6 +25,9 @@
     <!-- MSIX バンドル設定 -->
     <AppxBundle Condition="'$(Configuration)' != 'Debug'">Always</AppxBundle>
     <AppxBundlePlatforms>x64|ARM64</AppxBundlePlatforms>
+    <!-- Keep localized PRI resources in each architecture package so its
+         manifest advertises every supported language to Partner Center. -->
+    <AppxBundleAutoResourcePackageQualifiers>Scale|DXFeatureLevel</AppxBundleAutoResourcePackageQualifiers>
     <GenerateAppInstallerFile>false</GenerateAppInstallerFile>
     <!-- MSIX 署名証明書 -->
     <PackageCertificateKeyFile Condition="'$(Configuration)' != 'Debug' and '$(PackageCertificateThumbprint)' == ''">$(MSBuildProjectDirectory)\plotree_sign.pfx</PackageCertificateKeyFile>
