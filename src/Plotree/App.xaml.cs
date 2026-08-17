@@ -57,10 +57,10 @@ public partial class App : Application
     {
         try
         {
-            if (Services.RecentFilesService.GetLanguageOverride() is { } language)
-            {
-                Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = language;
-            }
+            // The packaged API persists this setting itself. Clear a previous
+            // override as well when the user returns to the system language.
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride =
+                Services.RecentFilesService.GetLanguageOverride() ?? string.Empty;
         }
         catch (Exception)
         {
