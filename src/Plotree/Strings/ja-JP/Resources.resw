@@ -204,6 +204,8 @@
   <data name="Error_SaveTitle" xml:space="preserve"><value>プロジェクトを保存できませんでした</value></data>
   <data name="Error_ExportTitle" xml:space="preserve"><value>エクスポートできませんでした</value></data>
   <data name="Error_ExportContent" xml:space="preserve"><value>ファイルをエクスポートできませんでした。</value></data>
+  <data name="Error_LanguageDownloadTitle" xml:space="preserve"><value>日本語をダウンロードできませんでした</value></data>
+  <data name="Error_LanguageDownloadContent" xml:space="preserve"><value>Microsoft Store から日本語をダウンロードできませんでした。インターネット接続を確認して、もう一度お試しください。</value></data>
   <data name="Error_PngExportContent" xml:space="preserve"><value>PNG 画像をエクスポートできませんでした。</value></data>
   <data name="Error_SvgExportContent" xml:space="preserve"><value>SVG 画像をエクスポートできませんでした。</value></data>
   <data name="Error_FileNotFoundTitle" xml:space="preserve"><value>ファイルが見つかりません</value></data>
