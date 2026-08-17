@@ -10,7 +10,7 @@
   <Identity
     Name="htkym.Plotree"
     Publisher="CN=F8A973CC-210E-44B9-B185-679779E239DA"
-    Version="1.0.1.0" />
+    Version="1.0.2.0" />
 
   <mp:PhoneIdentity PhoneProductId="9F9CAD9D-BF13-4E28-AD6C-C8FA0132327E" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
