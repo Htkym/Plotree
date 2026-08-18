@@ -2,6 +2,8 @@
 title: "Privacy Policy"
 date: "2026-08-09T00:00:00Z"
 summary: "How Plotree handles data: entirely offline, with no telemetry or personal-data collection."
+sidebar_position: 3
+sidebar_label: "Privacy policy (English)"
 tags:
   - privacy
   - English
