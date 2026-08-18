@@ -2,6 +2,8 @@
 title: "Plotree ユーザーマニュアル"
 date: "2026-08-09T00:00:00Z"
 summary: "Plotreeで分岐する物語の作成、接続、整理、配置、出力を行うための手順です。"
+sidebar_position: 2
+sidebar_label: "ユーザーマニュアル"
 tags:
   - manual
   - Japanese

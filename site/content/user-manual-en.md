@@ -2,6 +2,8 @@
 title: "Plotree User Manual"
 date: "2026-08-09T00:00:00Z"
 summary: "Create, connect, organize, arrange, and export branching story projects in Plotree."
+sidebar_position: 1
+sidebar_label: "User manual (English)"
 tags:
   - manual
   - English
