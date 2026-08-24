@@ -52,8 +52,13 @@
         <KeyboardAccelerator Key="Escape" Invoked="OnEscapeInvoked" />
         <KeyboardAccelerator Key="Delete" Invoked="OnDeleteInvoked" />
         <KeyboardAccelerator Modifiers="Control" Key="A" Invoked="OnSelectAllInvoked" />
+        <KeyboardAccelerator Modifiers="Control" Key="C" Invoked="OnCopyInvoked" />
+        <KeyboardAccelerator Modifiers="Control" Key="V" Invoked="OnPasteInvoked" />
         <KeyboardAccelerator Modifiers="Control" Key="Z" Invoked="OnUndoInvoked" />
         <KeyboardAccelerator Modifiers="Control" Key="Y" Invoked="OnRedoInvoked" />
+        <!-- The main-keyboard plus key is registered in code because VirtualKey has no OEM names. -->
+        <KeyboardAccelerator Modifiers="Control" Key="Add" Invoked="OnZoomInInvoked" />
+        <KeyboardAccelerator Modifiers="Control" Key="Subtract" Invoked="OnZoomOutInvoked" />
     </Page.KeyboardAccelerators>
 
     <Grid>
@@ -123,6 +128,16 @@
                         AutomationProperties.AutomationId="MenuFileExportText" />
                 </MenuFlyoutSubItem>
             </MenuBarItem>
+            <MenuBarItem x:Uid="MenuEdit" AutomationProperties.AutomationId="MenuEdit">
+                <MenuFlyoutItem
+                    x:Uid="MenuEditCopy"
+                    Command="{x:Bind ViewModel.CopyCommand}"
+                    AutomationProperties.AutomationId="MenuEditCopy" />
+                <MenuFlyoutItem
+                    x:Uid="MenuEditPaste"
+                    Command="{x:Bind ViewModel.PasteCommand}"
+                    AutomationProperties.AutomationId="MenuEditPaste" />
+            </MenuBarItem>
             <MenuBarItem x:Uid="MenuSettings" AutomationProperties.AutomationId="MenuSettings">
                 <MenuFlyoutItem
                     x:Uid="MenuNodeAppearance"
@@ -176,6 +191,8 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
@@ -202,14 +219,28 @@
                 </TextBlock>
 
                 <Button
+                    x:Name="CopyButton"
                     Grid.Column="4"
+                    Command="{x:Bind ViewModel.CopyCommand}"
+                    AutomationProperties.AutomationId="CopyButton">
+                    <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                </Button>
+                <Button
+                    x:Name="PasteButton"
+                    Grid.Column="5"
+                    Command="{x:Bind ViewModel.PasteCommand}"
+                    AutomationProperties.AutomationId="PasteButton">
+                    <FontIcon Glyph="&#xE77F;" FontSize="14" />
+                </Button>
+                <Button
+                    Grid.Column="6"
                     Command="{x:Bind ViewModel.UndoCommand}"
                     AutomationProperties.AutomationId="UndoButton"
                     AutomationProperties.Name="Undo">
                     <FontIcon Glyph="&#xE7A7;" FontSize="14" />
                 </Button>
                 <Button
-                    Grid.Column="5"
+                    Grid.Column="7"
                     Command="{x:Bind ViewModel.RedoCommand}"
                     AutomationProperties.AutomationId="RedoButton"
                     AutomationProperties.Name="Redo">
@@ -217,7 +248,7 @@
                 </Button>
                 <ToggleButton
                     x:Name="TogglePanelButton"
-                    Grid.Column="6"
+                    Grid.Column="8"
                     IsChecked="{x:Bind ViewModel.IsPanelOpen, Mode=TwoWay}"
                     AutomationProperties.AutomationId="TogglePanelButton"
                     AutomationProperties.Name="Toggle details panel">
@@ -228,6 +259,7 @@
             <!-- Command groups -->
             <Grid Grid.Row="1" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
@@ -646,10 +678,39 @@
                     </StackPanel>
                 </Border>
 
+                <!-- Group: viewport zoom -->
+                <Border Grid.Column="4" Style="{StaticResource ToolbarGroupBorderStyle}" AutomationProperties.AutomationId="ZoomGroup">
+                    <StackPanel Spacing="2">
+                        <TextBlock x:Uid="ZoomGroupLabel" Style="{StaticResource ToolbarGroupCaptionStyle}" />
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                            <Button
+                                x:Name="ZoomInButton"
+                                Click="OnZoomInClick"
+                                IsEnabled="{x:Bind CanvasView.CanZoomIn, Mode=OneWay}"
+                                AutomationProperties.AutomationId="ZoomInButton">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE8A3;" FontSize="14" />
+                                    <TextBlock x:Uid="ZoomInLabel" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                x:Name="ZoomOutButton"
+                                Click="OnZoomOutClick"
+                                IsEnabled="{x:Bind CanvasView.CanZoomOut, Mode=OneWay}"
+                                AutomationProperties.AutomationId="ZoomOutButton">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                    <FontIcon Glyph="&#xE71F;" FontSize="14" />
+                                    <TextBlock x:Uid="ZoomOutLabel" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
                 <!-- Project-wide node appearance settings -->
                 <Button
                     x:Name="AppearanceSettingsButton"
-                    Grid.Column="5"
+                    Grid.Column="6"
                     VerticalAlignment="Bottom"
                     Click="OnAppearanceSettingsClick"
                     AutomationProperties.AutomationId="AppearanceSettingsButton"

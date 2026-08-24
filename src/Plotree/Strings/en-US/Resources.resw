@@ -26,6 +26,9 @@
   <data name="MenuFileExportMarkdown.Text" xml:space="preserve"><value>Markdown (.md)…</value></data>
   <data name="MenuFileExportText.Text" xml:space="preserve"><value>Plain text (.txt)…</value></data>
   <data name="MenuSettings.Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="MenuEdit.Title" xml:space="preserve"><value>Edit</value></data>
+  <data name="MenuEditCopy.Text" xml:space="preserve"><value>Copy</value></data>
+  <data name="MenuEditPaste.Text" xml:space="preserve"><value>Paste</value></data>
   <data name="MenuNodeAppearance.Text" xml:space="preserve"><value>Node appearance…</value></data>
   <data name="MenuLanguage.Text" xml:space="preserve"><value>Language</value></data>
   <data name="MenuLanguageSystem.Text" xml:space="preserve"><value>System default</value></data>
@@ -40,6 +43,9 @@
   <data name="LayoutGroupLabel.Text" xml:space="preserve"><value>Layout</value></data>
   <data name="AutoLayoutLabel.Text" xml:space="preserve"><value>Auto layout</value></data>
   <data name="RelayoutAllItem.Text" xml:space="preserve"><value>Re-layout all (clear pins)</value></data>
+  <data name="ZoomGroupLabel.Text" xml:space="preserve"><value>Zoom</value></data>
+  <data name="ZoomInLabel.Text" xml:space="preserve"><value>In</value></data>
+  <data name="ZoomOutLabel.Text" xml:space="preserve"><value>Out</value></data>
   <data name="AppearanceSettingsLabel.Text" xml:space="preserve"><value>Appearance</value></data>
   <data name="NodesLabel.Text" xml:space="preserve"><value>Nodes:</value></data>
   <data name="ColorTagCombo.PlaceholderText" xml:space="preserve"><value>No tag</value></data>
@@ -123,6 +129,10 @@
   <data name="Tooltip_Appearance" xml:space="preserve"><value>Node appearance settings for this project</value></data>
   <data name="Tooltip_ResetHeaderColor" xml:space="preserve"><value>Reset to the default color</value></data>
   <data name="Tooltip_UnpinSelected" xml:space="preserve"><value>Return every selected node to auto layout</value></data>
+  <data name="Tooltip_Copy" xml:space="preserve"><value>Copy selected nodes and connections (Ctrl+C)</value></data>
+  <data name="Tooltip_Paste" xml:space="preserve"><value>Paste copied nodes and connections (Ctrl+V)</value></data>
+  <data name="Tooltip_ZoomIn" xml:space="preserve"><value>Zoom in around the viewport center (Ctrl++)</value></data>
+  <data name="Tooltip_ZoomOut" xml:space="preserve"><value>Zoom out around the viewport center (Ctrl+-)</value></data>
 
   <!-- Selection (code) -->
   <data name="Selection_NodeCount" xml:space="preserve"><value>{0} nodes selected</value></data>
@@ -135,7 +145,11 @@
   <data name="Automation_Canvas" xml:space="preserve"><value>Plot canvas</value></data>
   <data name="Automation_Marquee" xml:space="preserve"><value>Selection rectangle</value></data>
   <data name="Automation_Edge" xml:space="preserve"><value>Connection: {0} to {1}</value></data>
-  <data name="Help_CanvasGestures" xml:space="preserve"><value>Drag empty canvas to select nodes, Ctrl or Shift to add to the selection, Ctrl+A to select all, middle button or Space and drag to pan, Ctrl and wheel to zoom.</value></data>
+  <data name="Automation_Copy" xml:space="preserve"><value>Copy selected nodes</value></data>
+  <data name="Automation_Paste" xml:space="preserve"><value>Paste copied nodes</value></data>
+  <data name="Automation_ZoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="Automation_ZoomOut" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="Help_CanvasGestures" xml:space="preserve"><value>Drag empty canvas to pan, Shift+drag to marquee-select, wheel to scroll vertically, Shift+wheel to scroll horizontally, Ctrl+wheel to zoom, and Ctrl++ / Ctrl+- to zoom around the viewport center.</value></data>
 
   <!-- Layout direction combo (code) -->
   <data name="Direction_LeftToRight" xml:space="preserve"><value>→  Left to right</value></data>
@@ -163,6 +177,10 @@
   <data name="Context_DeleteEdge" xml:space="preserve"><value>Delete connection</value></data>
   <data name="Context_Unpin" xml:space="preserve"><value>Unpin from auto layout</value></data>
   <data name="Context_UnpinSelected" xml:space="preserve"><value>Unpin {0} selected nodes</value></data>
+  <data name="Context_Copy" xml:space="preserve"><value>Copy (Ctrl+C)</value></data>
+  <data name="Context_Paste" xml:space="preserve"><value>Paste (Ctrl+V)</value></data>
+  <data name="Context_ZoomIn" xml:space="preserve"><value>Zoom in (Ctrl++)</value></data>
+  <data name="Context_ZoomOut" xml:space="preserve"><value>Zoom out (Ctrl+-)</value></data>
   <data name="Context_SelectAll" xml:space="preserve"><value>Select all nodes (Ctrl+A)</value></data>
 
   <!-- Dialogs (code) -->

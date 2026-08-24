@@ -12,6 +12,7 @@ using Windows.ApplicationModel;
 using Windows.Foundation;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using Windows.System;
 
 namespace Plotree;
 
@@ -20,11 +21,16 @@ namespace Plotree;
 /// </summary>
 public sealed partial class MainPage : Page
 {
+    // VK_OEM_PLUS / VK_OEM_MINUS are not named members of Windows.System.VirtualKey.
+    private const VirtualKey MainKeyboardPlusKey = (VirtualKey)0xBB;
+    private const VirtualKey MainKeyboardMinusKey = (VirtualKey)0xBD;
+
     public MainPageViewModel ViewModel { get; } = new();
 
     public MainPage()
     {
         InitializeComponent();
+        RegisterMainKeyboardZoomAccelerators();
 
         // Localized combo items and tooltips (resources aren't reachable via x:Uid for these).
         DirectionCombo.ItemsSource = new[]
@@ -53,6 +59,14 @@ public sealed partial class MainPage : Page
         ToolTipService.SetToolTip(TypeColorResetButton, Loc.Get("Tooltip_ResetHeaderColor"));
         ToolTipService.SetToolTip(BulkDeleteButton, Loc.Get("Tooltip_DeleteSelected"));
         ToolTipService.SetToolTip(BulkUnpinButton, Loc.Get("Tooltip_UnpinSelected"));
+        ToolTipService.SetToolTip(CopyButton, Loc.Get("Tooltip_Copy"));
+        ToolTipService.SetToolTip(PasteButton, Loc.Get("Tooltip_Paste"));
+        AutomationProperties.SetName(CopyButton, Loc.Get("Automation_Copy"));
+        AutomationProperties.SetName(PasteButton, Loc.Get("Automation_Paste"));
+        ToolTipService.SetToolTip(ZoomInButton, Loc.Get("Tooltip_ZoomIn"));
+        ToolTipService.SetToolTip(ZoomOutButton, Loc.Get("Tooltip_ZoomOut"));
+        AutomationProperties.SetName(ZoomInButton, Loc.Get("Automation_ZoomIn"));
+        AutomationProperties.SetName(ZoomOutButton, Loc.Get("Automation_ZoomOut"));
 
         // Reflect the persisted language choice in the Settings menu.
         var language = RecentFilesService.GetLanguageOverride();
@@ -69,6 +83,25 @@ public sealed partial class MainPage : Page
         RebuildRecentFilesMenu();
 
         Loaded += OnPageLoaded;
+    }
+
+    private void RegisterMainKeyboardZoomAccelerators()
+    {
+        var zoomIn = new KeyboardAccelerator
+        {
+            Key = MainKeyboardPlusKey,
+            Modifiers = VirtualKeyModifiers.Control | VirtualKeyModifiers.Shift,
+        };
+        zoomIn.Invoked += OnZoomInInvoked;
+        KeyboardAccelerators.Add(zoomIn);
+
+        var zoomOut = new KeyboardAccelerator
+        {
+            Key = MainKeyboardMinusKey,
+            Modifiers = VirtualKeyModifiers.Control,
+        };
+        zoomOut.Invoked += OnZoomOutInvoked;
+        KeyboardAccelerators.Add(zoomOut);
     }
 
     // ----- x:Bind visibility helpers -----
@@ -121,6 +154,38 @@ public sealed partial class MainPage : Page
         args.Handled = true;
     }
 
+    private void OnCopyInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        // Keep the standard text copy operation when an editor owns the focus.
+        if (IsTextInputFocused())
+        {
+            return;
+        }
+
+        if (ViewModel.CopyCommand.CanExecute(null))
+        {
+            ViewModel.CopyCommand.Execute(null);
+        }
+
+        args.Handled = true;
+    }
+
+    private void OnPasteInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        // Keep the standard text paste operation when an editor owns the focus.
+        if (IsTextInputFocused())
+        {
+            return;
+        }
+
+        if (ViewModel.PasteCommand.CanExecute(null))
+        {
+            ViewModel.PasteCommand.Execute(null);
+        }
+
+        args.Handled = true;
+    }
+
     private void OnUndoInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
         if (IsTextInputFocused())
@@ -148,6 +213,30 @@ public sealed partial class MainPage : Page
             ViewModel.RedoCommand.Execute(null);
         }
 
+        args.Handled = true;
+    }
+
+    private void OnZoomInInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        // Keep Ctrl++ available to text editors that use it for their own behavior.
+        if (IsTextInputFocused())
+        {
+            return;
+        }
+
+        CanvasView.ZoomIn();
+        args.Handled = true;
+    }
+
+    private void OnZoomOutInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+    {
+        // Keep Ctrl+- available to text editors that use it for their own behavior.
+        if (IsTextInputFocused())
+        {
+            return;
+        }
+
+        CanvasView.ZoomOut();
         args.Handled = true;
     }
 
@@ -196,6 +285,10 @@ public sealed partial class MainPage : Page
 
     private void OnAutoLayoutClick(SplitButton sender, SplitButtonClickEventArgs args) =>
         ViewModel.AutoLayoutCommand.Execute(null);
+
+    private void OnZoomInClick(object sender, RoutedEventArgs e) => CanvasView.ZoomIn();
+
+    private void OnZoomOutClick(object sender, RoutedEventArgs e) => CanvasView.ZoomOut();
 
     // ----- Image export -----
 

@@ -11,13 +11,19 @@
         x:Name="ViewportGrid"
         Background="Transparent"
         AutomationProperties.AutomationId="PlotCanvasViewport">
-        <Canvas x:Name="WorldCanvas">
-            <Canvas.RenderTransform>
-                <CompositeTransform x:Name="WorldTransform" />
-            </Canvas.RenderTransform>
-            <Canvas x:Name="EdgeLayer" />
-            <Canvas x:Name="NodeLayer" />
-        </Canvas>
+        <ScrollViewer
+            x:Name="WorldScrollViewer"
+            HorizontalScrollBarVisibility="Auto"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollMode="Enabled"
+            VerticalScrollMode="Enabled"
+            ZoomMode="Disabled"
+            AutomationProperties.AutomationId="PlotCanvasScrollViewer">
+            <Canvas x:Name="WorldCanvas" Background="Transparent">
+                <Canvas x:Name="EdgeLayer" />
+                <Canvas x:Name="NodeLayer" />
+            </Canvas>
+        </ScrollViewer>
 
         <!--
             Selection marquee. It lives outside WorldCanvas on purpose: the rubber band is
