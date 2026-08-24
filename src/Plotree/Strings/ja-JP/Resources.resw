@@ -26,6 +26,9 @@
   <data name="MenuFileExportMarkdown.Text" xml:space="preserve"><value>Markdown (.md)…</value></data>
   <data name="MenuFileExportText.Text" xml:space="preserve"><value>テキスト (.txt)…</value></data>
   <data name="MenuSettings.Title" xml:space="preserve"><value>設定</value></data>
+  <data name="MenuEdit.Title" xml:space="preserve"><value>編集</value></data>
+  <data name="MenuEditCopy.Text" xml:space="preserve"><value>コピー</value></data>
+  <data name="MenuEditPaste.Text" xml:space="preserve"><value>貼り付け</value></data>
   <data name="MenuNodeAppearance.Text" xml:space="preserve"><value>ノードの外観…</value></data>
   <data name="MenuLanguage.Text" xml:space="preserve"><value>言語</value></data>
   <data name="MenuLanguageSystem.Text" xml:space="preserve"><value>システムの既定</value></data>
@@ -40,6 +43,9 @@
   <data name="LayoutGroupLabel.Text" xml:space="preserve"><value>レイアウト</value></data>
   <data name="AutoLayoutLabel.Text" xml:space="preserve"><value>自動整列</value></data>
   <data name="RelayoutAllItem.Text" xml:space="preserve"><value>すべて再整列（ピン解除）</value></data>
+  <data name="ZoomGroupLabel.Text" xml:space="preserve"><value>ズーム</value></data>
+  <data name="ZoomInLabel.Text" xml:space="preserve"><value>拡大</value></data>
+  <data name="ZoomOutLabel.Text" xml:space="preserve"><value>縮小</value></data>
   <data name="AppearanceSettingsLabel.Text" xml:space="preserve"><value>外観</value></data>
   <data name="NodesLabel.Text" xml:space="preserve"><value>ノード数:</value></data>
   <data name="ColorTagCombo.PlaceholderText" xml:space="preserve"><value>タグなし</value></data>
@@ -123,6 +129,10 @@
   <data name="Tooltip_Appearance" xml:space="preserve"><value>このプロジェクトのノード外観設定</value></data>
   <data name="Tooltip_ResetHeaderColor" xml:space="preserve"><value>既定の色に戻す</value></data>
   <data name="Tooltip_UnpinSelected" xml:space="preserve"><value>選択中のすべてのノードを自動整列に戻す</value></data>
+  <data name="Tooltip_Copy" xml:space="preserve"><value>選択中のノードと接続をコピー (Ctrl+C)</value></data>
+  <data name="Tooltip_Paste" xml:space="preserve"><value>コピーしたノードと接続を貼り付け (Ctrl+V)</value></data>
+  <data name="Tooltip_ZoomIn" xml:space="preserve"><value>ビューポート中央を基準に拡大 (Ctrl++)</value></data>
+  <data name="Tooltip_ZoomOut" xml:space="preserve"><value>ビューポート中央を基準に縮小 (Ctrl+-)</value></data>
 
   <!-- Selection (code) -->
   <data name="Selection_NodeCount" xml:space="preserve"><value>{0} 個のノードを選択中</value></data>
@@ -135,7 +145,11 @@
   <data name="Automation_Canvas" xml:space="preserve"><value>プロットキャンバス</value></data>
   <data name="Automation_Marquee" xml:space="preserve"><value>選択範囲</value></data>
   <data name="Automation_Edge" xml:space="preserve"><value>接続: {0} から {1}</value></data>
-  <data name="Help_CanvasGestures" xml:space="preserve"><value>空白部分のドラッグでノードを範囲選択、Ctrl または Shift で選択に追加、Ctrl+A ですべて選択、中ボタンまたは Space+ドラッグでパン、Ctrl+ホイールでズームします。</value></data>
+  <data name="Automation_Copy" xml:space="preserve"><value>選択中のノードをコピー</value></data>
+  <data name="Automation_Paste" xml:space="preserve"><value>コピーしたノードを貼り付け</value></data>
+  <data name="Automation_ZoomIn" xml:space="preserve"><value>拡大</value></data>
+  <data name="Automation_ZoomOut" xml:space="preserve"><value>縮小</value></data>
+  <data name="Help_CanvasGestures" xml:space="preserve"><value>空白部分のドラッグでパン、Shift+ドラッグで範囲選択、ホイールで縦スクロール、Shift+ホイールで横スクロール、Ctrl+ホイールでズーム、Ctrl++ / Ctrl+- でビューポート中央を基準にズームします。</value></data>
 
   <!-- Layout direction combo (code) -->
   <data name="Direction_LeftToRight" xml:space="preserve"><value>→  左から右</value></data>
@@ -163,6 +177,10 @@
   <data name="Context_DeleteEdge" xml:space="preserve"><value>接続を削除</value></data>
   <data name="Context_Unpin" xml:space="preserve"><value>ピン留めを解除して自動整列に含める</value></data>
   <data name="Context_UnpinSelected" xml:space="preserve"><value>選択中の {0} 個のノードのピン留めを解除</value></data>
+  <data name="Context_Copy" xml:space="preserve"><value>コピー (Ctrl+C)</value></data>
+  <data name="Context_Paste" xml:space="preserve"><value>貼り付け (Ctrl+V)</value></data>
+  <data name="Context_ZoomIn" xml:space="preserve"><value>拡大 (Ctrl++)</value></data>
+  <data name="Context_ZoomOut" xml:space="preserve"><value>縮小 (Ctrl+-)</value></data>
   <data name="Context_SelectAll" xml:space="preserve"><value>すべてのノードを選択 (Ctrl+A)</value></data>
 
   <!-- Dialogs (code) -->

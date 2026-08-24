@@ -339,4 +339,261 @@ public sealed class MainPageViewModelTests
         viewModel.ClearSelectedTagsCommand.Execute(null);
         Assert.IsEmpty(restored.TagColors);
     }
+
+    [TestMethod]
+    public void Copy_RequiresNodeSelectionAndDoesNotDirtyProject()
+    {
+        var viewModel = new MainPageViewModel();
+
+        Assert.IsFalse(viewModel.CanCopy);
+        Assert.IsFalse(viewModel.CopyCommand.CanExecute(null));
+        Assert.IsFalse(viewModel.CanPaste);
+        Assert.IsFalse(viewModel.PasteCommand.CanExecute(null));
+
+        var node = viewModel.AddNode(NodeType.Scene, 10, 20);
+        viewModel.SelectNode(node);
+        var dirtyBeforeCopy = viewModel.IsDirty;
+        viewModel.CopyCommand.Execute(null);
+
+        Assert.IsTrue(viewModel.CanCopy);
+        Assert.IsTrue(viewModel.CanPaste);
+        Assert.IsTrue(viewModel.PasteCommand.CanExecute(null));
+        Assert.AreEqual(dirtyBeforeCopy, viewModel.IsDirty);
+
+        viewModel.ClearSelection();
+        Assert.IsFalse(viewModel.CanCopy);
+        Assert.IsTrue(viewModel.CanPaste);
+    }
+
+    [TestMethod]
+    public void CopyPaste_PreservesSelectedNodesAndOnlyInternalEdgesWithFreshIds()
+    {
+        var viewModel = new MainPageViewModel();
+        var first = viewModel.AddNode(NodeType.Scene, 10, 20);
+        var second = viewModel.AddNode(NodeType.Choice, 210, 220);
+        var external = viewModel.AddNode(NodeType.Ending, 410, 420);
+        first.Model.Body = "body";
+        first.Model.Memo = "memo";
+        first.Model.TagNames.Add("urgent");
+        first.Model.CharacterIds.Add("character-id");
+        first.Model.IsPinned = true;
+        first.Model.Appearance = new NodeAppearance
+        {
+            HeaderColor = "#123456",
+            Width = 321,
+            Height = 123,
+            DisplayMode = NodeDisplayMode.Compact,
+        };
+        second.Model.Title = "choice";
+
+        var internalEdge = viewModel.AddEdge(first, second, EdgeSide.Right, EdgeSide.Left)!;
+        var outgoingExternalEdge = viewModel.AddEdge(first, external, EdgeSide.Bottom, EdgeSide.Top)!;
+        var incomingExternalEdge = viewModel.AddEdge(external, second, EdgeSide.Left, EdgeSide.Right)!;
+        internalEdge.Model.Label = "accept";
+
+        viewModel.SelectNodes([first, second], isAdditive: false);
+        viewModel.CopyCommand.Execute(null);
+        viewModel.PasteCommand.Execute(null);
+
+        Assert.AreEqual(5, viewModel.Project.Nodes.Count);
+        Assert.AreEqual(4, viewModel.Project.Edges.Count);
+        Assert.AreNotEqual(first.Model.Id, viewModel.SelectedNodes[0].Model.Id);
+        Assert.AreNotEqual(second.Model.Id, viewModel.SelectedNodes[1].Model.Id);
+        Assert.IsTrue(viewModel.Project.Edges.Any(edge => edge.Id == internalEdge.Model.Id));
+        Assert.IsTrue(viewModel.Project.Edges.Any(edge => edge.Id == outgoingExternalEdge.Model.Id));
+        Assert.IsTrue(viewModel.Project.Edges.Any(edge => edge.Id == incomingExternalEdge.Model.Id));
+
+        var pastedFirst = viewModel.SelectedNodes.Single(node => node.Model.Title != "choice").Model;
+        var pastedSecond = viewModel.SelectedNodes.Single(node => node.Model.Title == "choice").Model;
+        Assert.AreEqual(NodeType.Scene, pastedFirst.Type);
+        Assert.AreEqual("body", pastedFirst.Body);
+        Assert.AreEqual("memo", pastedFirst.Memo);
+        CollectionAssert.AreEqual(new[] { "urgent" }, pastedFirst.TagNames);
+        CollectionAssert.AreEqual(new[] { "character-id" }, pastedFirst.CharacterIds);
+        Assert.IsTrue(pastedFirst.IsPinned);
+        Assert.IsNotNull(pastedFirst.Appearance);
+        Assert.AreEqual("#123456", pastedFirst.Appearance!.HeaderColor);
+        Assert.AreEqual(321d, pastedFirst.Appearance.Width);
+        Assert.AreEqual(123d, pastedFirst.Appearance.Height);
+        Assert.AreEqual(NodeDisplayMode.Compact, pastedFirst.Appearance.DisplayMode);
+        Assert.AreEqual(34d, pastedFirst.X, 1e-9);
+        Assert.AreEqual(44d, pastedFirst.Y, 1e-9);
+
+        var pastedEdge = viewModel.Project.Edges.Single(edge =>
+            edge.FromId == pastedFirst.Id && edge.ToId == pastedSecond.Id);
+        Assert.AreNotEqual(internalEdge.Model.Id, pastedEdge.Id);
+        Assert.AreEqual("accept", pastedEdge.Label);
+        Assert.AreEqual(EdgeSide.Right, pastedEdge.FromSide);
+        Assert.AreEqual(EdgeSide.Left, pastedEdge.ToSide);
+    }
+
+    [TestMethod]
+    public void CopyPaste_UsesIndependentDeepSnapshotAndIncreasingOffsets()
+    {
+        var viewModel = new MainPageViewModel();
+        var source = viewModel.AddNode(NodeType.Scene, 100, 200);
+        source.Model.Title = "before";
+        source.Model.TagNames.Add("before-tag");
+        source.Model.Appearance = new NodeAppearance { Width = 200 };
+        viewModel.SelectNode(source);
+        viewModel.CopyCommand.Execute(null);
+
+        source.Model.Title = "after";
+        source.Model.TagNames[0] = "after-tag";
+        source.Model.Appearance!.Width = 500;
+
+        viewModel.PasteCommand.Execute(null);
+        var firstPaste = viewModel.SelectedNodes.Single().Model;
+        Assert.AreEqual("before", firstPaste.Title);
+        CollectionAssert.AreEqual(new[] { "before-tag" }, firstPaste.TagNames);
+        Assert.AreEqual(200d, firstPaste.Appearance!.Width);
+        Assert.AreEqual(124d, firstPaste.X, 1e-9);
+        Assert.AreEqual(224d, firstPaste.Y, 1e-9);
+
+        viewModel.PasteCommand.Execute(null);
+        var secondPaste = viewModel.SelectedNodes.Single().Model;
+        Assert.AreEqual("before", secondPaste.Title);
+        Assert.AreEqual(148d, secondPaste.X, 1e-9);
+        Assert.AreEqual(248d, secondPaste.Y, 1e-9);
+        Assert.AreNotEqual(firstPaste.Id, secondPaste.Id);
+    }
+
+    [TestMethod]
+    public void Paste_IsOneUndoableMutationAndSelectsAllPastedNodes()
+    {
+        var viewModel = new MainPageViewModel();
+        var first = viewModel.AddNode(NodeType.Scene, 0, 0);
+        var second = viewModel.AddNode(NodeType.Ending, 200, 0);
+        viewModel.AddEdge(first, second, EdgeSide.Right, EdgeSide.Left);
+        viewModel.SelectNodes([first, second], isAdditive: false);
+        viewModel.CopyCommand.Execute(null);
+
+        var dirtyBeforePaste = viewModel.IsDirty;
+        viewModel.PasteCommand.Execute(null);
+
+        Assert.IsTrue(viewModel.IsDirty);
+        Assert.AreEqual(2, viewModel.SelectedNodeCount);
+        Assert.IsTrue(viewModel.SelectedNodes.All(node => node.IsSelected));
+        Assert.IsTrue(viewModel.SelectedNodes.All(node => !ReferenceEquals(node, first) && !ReferenceEquals(node, second)));
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.AreEqual(dirtyBeforePaste, viewModel.IsDirty);
+        Assert.AreEqual(2, viewModel.Project.Nodes.Count);
+        Assert.AreEqual(1, viewModel.Project.Edges.Count);
+
+        viewModel.RedoCommand.Execute(null);
+        Assert.IsTrue(viewModel.IsDirty);
+        Assert.AreEqual(4, viewModel.Project.Nodes.Count);
+        Assert.AreEqual(2, viewModel.Project.Edges.Count);
+    }
+
+    [TestMethod]
+    public void Clipboard_SurvivesCreatingAnotherProject()
+    {
+        var viewModel = new MainPageViewModel();
+        var source = viewModel.AddNode(NodeType.Scene, 0, 0);
+        viewModel.SelectNode(source);
+        viewModel.CopyCommand.Execute(null);
+
+        viewModel.Project = new PlotProject();
+
+        Assert.IsTrue(viewModel.CanPaste);
+        viewModel.PasteCommand.Execute(null);
+        Assert.AreEqual(1, viewModel.Project.Nodes.Count);
+        Assert.AreEqual(source.Model.Title, viewModel.Project.Nodes.Single().Title);
+    }
+
+    [TestMethod]
+    public void CopyPaste_ImportsReferencedMetadataIntoNewProjectWithRemappedIds()
+    {
+        var viewModel = new MainPageViewModel();
+        var node = viewModel.AddNode(NodeType.Scene, 40, 60);
+        var tag = new ColorTag { Name = "Urgent", Color = "#E5484D" };
+        var group = new CharacterGroup { Name = "Leads" };
+        var character = new Character
+        {
+            Name = "Ari",
+            Color = "#00AAFF",
+            Note = "detective",
+            GroupIds = [group.Id],
+        };
+        viewModel.Project.Tags.Add(tag);
+        viewModel.Project.Groups.Add(group);
+        viewModel.Project.Characters.Add(character);
+        node.Model.TagNames.Add(tag.Name);
+        node.Model.CharacterIds.Add(character.Id);
+        viewModel.SelectNode(node);
+        viewModel.CopyCommand.Execute(null);
+
+        viewModel.Project = new PlotProject();
+        viewModel.PasteCommand.Execute(null);
+
+        var pasted = viewModel.Project.Nodes.Single();
+        var importedTag = viewModel.Project.Tags.Single();
+        var importedGroup = viewModel.Project.Groups.Single();
+        var importedCharacter = viewModel.Project.Characters.Single();
+
+        Assert.AreEqual("Urgent", importedTag.Name);
+        Assert.AreEqual("#E5484D", importedTag.Color);
+        Assert.AreEqual("Leads", importedGroup.Name);
+        Assert.AreEqual("Ari", importedCharacter.Name);
+        Assert.AreEqual("#00AAFF", importedCharacter.Color);
+        Assert.AreEqual("detective", importedCharacter.Note);
+        Assert.AreNotEqual(character.Id, importedCharacter.Id);
+        Assert.AreNotEqual(group.Id, importedGroup.Id);
+        CollectionAssert.AreEqual(new[] { importedTag.Name }, pasted.TagNames);
+        CollectionAssert.AreEqual(new[] { importedCharacter.Id }, pasted.CharacterIds);
+        CollectionAssert.AreEqual(new[] { importedGroup.Id }, importedCharacter.GroupIds);
+
+        viewModel.UndoCommand.Execute(null);
+        Assert.IsEmpty(viewModel.Project.Nodes);
+        Assert.IsEmpty(viewModel.Project.Tags);
+        Assert.IsEmpty(viewModel.Project.Characters);
+        Assert.IsEmpty(viewModel.Project.Groups);
+    }
+
+    [TestMethod]
+    public void CopyPaste_ReconcilesMetadataCollisionsAndDoesNotDuplicateOnRepeat()
+    {
+        var viewModel = new MainPageViewModel();
+        var sourceNode = viewModel.AddNode(NodeType.Scene, 0, 0);
+        var sourceTag = new ColorTag { Name = "Urgent", Color = "#E5484D" };
+        var sourceGroup = new CharacterGroup { Name = "Leads" };
+        var sourceCharacter = new Character
+        {
+            Name = "Ari",
+            Color = "#00AAFF",
+            GroupIds = [sourceGroup.Id],
+        };
+        viewModel.Project.Tags.Add(sourceTag);
+        viewModel.Project.Groups.Add(sourceGroup);
+        viewModel.Project.Characters.Add(sourceCharacter);
+        sourceNode.Model.TagNames.Add(sourceTag.Name);
+        sourceNode.Model.CharacterIds.Add(sourceCharacter.Id);
+        viewModel.SelectNode(sourceNode);
+        viewModel.CopyCommand.Execute(null);
+
+        var destinationTag = new ColorTag { Name = "urgent", Color = "#111111" };
+        var destinationGroup = new CharacterGroup { Name = "leads" };
+        var destinationCharacter = new Character { Name = "ari", Color = "#222222" };
+        viewModel.Project = new PlotProject
+        {
+            Tags = [destinationTag],
+            Groups = [destinationGroup],
+            Characters = [destinationCharacter],
+        };
+
+        viewModel.PasteCommand.Execute(null);
+        viewModel.PasteCommand.Execute(null);
+
+        Assert.AreEqual(1, viewModel.Project.Tags.Count);
+        Assert.AreEqual("#111111", viewModel.Project.Tags.Single().Color);
+        Assert.AreEqual(1, viewModel.Project.Groups.Count);
+        Assert.AreEqual(1, viewModel.Project.Characters.Count);
+        Assert.AreEqual("#222222", viewModel.Project.Characters.Single().Color);
+        Assert.IsTrue(viewModel.Project.Nodes.All(node =>
+            node.TagNames.SequenceEqual(new[] { destinationTag.Name })
+            && node.CharacterIds.SequenceEqual(new[] { destinationCharacter.Id })));
+        Assert.IsEmpty(viewModel.Project.Characters.Single().GroupIds);
+    }
 }

@@ -28,6 +28,10 @@ public partial class MainPageViewModel : ObservableObject
     private PlotProject? _mutationScopeBefore;
     private bool _isSyncingNodeOptions;
     private bool _isSyncingGroupOptions;
+    private ClipboardSnapshot? _clipboard;
+    private int _pasteCount;
+
+    private const double PasteOffsetStep = 24;
 
     public MainPageViewModel()
     {
@@ -179,6 +183,8 @@ public partial class MainPageViewModel : ObservableObject
     public int NodeCount => Project.Nodes.Count;
     public bool CanUndo => _undoRedo.CanUndo;
     public bool CanRedo => _undoRedo.CanRedo;
+    public bool CanCopy => _selectedNodes.Count > 0;
+    public bool CanPaste => _clipboard is not null;
 
     /// <summary>Localized tag list for the current node selection, including multi-selection.</summary>
     public string SelectedTagsSummary => SummarizeSelection(
@@ -437,6 +443,262 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
+    // ----- Clipboard -----
+
+    /// <summary>
+    /// Copies the selected nodes and connections between them into an in-process clipboard.
+    /// The clipboard deliberately lives on the view model so it survives a project switch
+    /// without involving the system clipboard or changing project history.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(CanCopy))]
+    private void Copy()
+    {
+        var selectedIds = _selectedNodes
+            .Select(node => node.Model.Id)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var nodes = Project.Nodes
+            .Where(node => selectedIds.Contains(node.Id))
+            .Select(CloneNode)
+            .ToList();
+        var edges = Project.Edges
+            .Where(edge => selectedIds.Contains(edge.FromId) && selectedIds.Contains(edge.ToId))
+            .Select(CloneEdge)
+            .ToList();
+
+        var tagNames = nodes
+            .SelectMany(node => node.TagNames.Append(node.LegacyColorTag))
+            .OfType<string>()
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var tags = Project.Tags
+            .Where(tag => tagNames.Contains(tag.Name))
+            .Select(CloneColorTag)
+            .ToList();
+
+        var characterIds = nodes
+            .SelectMany(node => node.CharacterIds)
+            .ToHashSet(StringComparer.Ordinal);
+        var characters = Project.Characters
+            .Where(character => characterIds.Contains(character.Id))
+            .Select(CloneCharacter)
+            .ToList();
+        var groupIds = characters
+            .SelectMany(character => character.GroupIds)
+            .ToHashSet(StringComparer.Ordinal);
+        var groups = Project.Groups
+            .Where(group => groupIds.Contains(group.Id))
+            .Select(CloneGroup)
+            .ToList();
+
+        _clipboard = new ClipboardSnapshot(nodes, edges, tags, characters, groups);
+        _pasteCount = 0;
+        OnPropertyChanged(nameof(CanPaste));
+        PasteCommand.NotifyCanExecuteChanged();
+    }
+
+    /// <summary>Pastes a fresh, offset copy of the clipboard as one project mutation.</summary>
+    [RelayCommand(CanExecute = nameof(CanPaste))]
+    private void Paste()
+    {
+        if (_clipboard is not { } clipboard)
+        {
+            return;
+        }
+
+        _pasteCount++;
+        var offset = PasteOffsetStep * _pasteCount;
+        var existingNodeIds = Project.Nodes.Select(node => node.Id).ToHashSet(StringComparer.Ordinal);
+        var existingEdgeIds = Project.Edges.Select(edge => edge.Id).ToHashSet(StringComparer.Ordinal);
+        var nodeIdMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        var pastedNodeIds = new List<string>(clipboard.Nodes.Count);
+        var tagNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var groupIdMap = new Dictionary<string, string>(StringComparer.Ordinal);
+        var characterIdMap = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        MutateProject(() =>
+        {
+            ReconcileClipboardTags(clipboard.Tags, tagNameMap);
+            ReconcileClipboardGroups(clipboard.Groups, groupIdMap);
+            ReconcileClipboardCharacters(clipboard.Characters, groupIdMap, characterIdMap);
+
+            foreach (var source in clipboard.Nodes)
+            {
+                var pasted = CloneNode(source);
+                pasted.Id = CreateUniqueId(existingNodeIds);
+                pasted.X += offset;
+                pasted.Y += offset;
+                pasted.TagNames = pasted.TagNames
+                    .Select(tagName => tagNameMap.TryGetValue(tagName, out var mappedName) ? mappedName : tagName)
+                    .ToList();
+                pasted.LegacyColorTag = pasted.LegacyColorTag is { } legacyTag
+                    && tagNameMap.TryGetValue(legacyTag, out var mappedLegacyTag)
+                    ? mappedLegacyTag
+                    : pasted.LegacyColorTag;
+                pasted.CharacterIds = pasted.CharacterIds
+                    .Select(characterId => characterIdMap.TryGetValue(characterId, out var mappedId)
+                        ? mappedId
+                        : characterId)
+                    .ToList();
+                Project.Nodes.Add(pasted);
+                nodeIdMap[source.Id] = pasted.Id;
+                pastedNodeIds.Add(pasted.Id);
+            }
+
+            foreach (var source in clipboard.Edges)
+            {
+                if (!nodeIdMap.TryGetValue(source.FromId, out var fromId)
+                    || !nodeIdMap.TryGetValue(source.ToId, out var toId))
+                {
+                    continue;
+                }
+
+                var pasted = CloneEdge(source);
+                pasted.Id = CreateUniqueId(existingEdgeIds);
+                pasted.FromId = fromId;
+                pasted.ToId = toId;
+                Project.Edges.Add(pasted);
+            }
+        });
+
+        RebuildGraph();
+        SelectNodes(
+            Nodes.Where(node => pastedNodeIds.Contains(node.Model.Id)),
+            isAdditive: false);
+    }
+
+    private void ReconcileClipboardTags(
+        IReadOnlyList<ColorTag> sourceTags,
+        Dictionary<string, string> tagNameMap)
+    {
+        foreach (var source in sourceTags)
+        {
+            var existing = Project.Tags.FirstOrDefault(tag =>
+                string.Equals(tag.Name, source.Name, StringComparison.OrdinalIgnoreCase));
+            if (existing is null)
+            {
+                existing = CloneColorTag(source);
+                Project.Tags.Add(existing);
+            }
+
+            tagNameMap[source.Name] = existing.Name;
+        }
+    }
+
+    private void ReconcileClipboardGroups(
+        IReadOnlyList<CharacterGroup> sourceGroups,
+        Dictionary<string, string> groupIdMap)
+    {
+        var existingIds = Project.Groups.Select(group => group.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var source in sourceGroups)
+        {
+            var existing = Project.Groups.FirstOrDefault(group =>
+                string.Equals(group.Name, source.Name, StringComparison.OrdinalIgnoreCase));
+            if (existing is null)
+            {
+                existing = CloneGroup(source);
+                existing.Id = CreateUniqueId(existingIds);
+                Project.Groups.Add(existing);
+            }
+
+            groupIdMap[source.Id] = existing.Id;
+        }
+    }
+
+    private void ReconcileClipboardCharacters(
+        IReadOnlyList<Character> sourceCharacters,
+        IReadOnlyDictionary<string, string> groupIdMap,
+        Dictionary<string, string> characterIdMap)
+    {
+        var existingIds = Project.Characters.Select(character => character.Id).ToHashSet(StringComparer.Ordinal);
+        foreach (var source in sourceCharacters)
+        {
+            var existing = !string.IsNullOrWhiteSpace(source.Name)
+                ? Project.Characters.FirstOrDefault(character =>
+                    string.Equals(character.Name, source.Name, StringComparison.OrdinalIgnoreCase))
+                : null;
+            if (existing is null)
+            {
+                existing = CloneCharacter(source);
+                existing.Id = CreateUniqueId(existingIds);
+                existing.GroupIds = source.GroupIds
+                    .Where(groupId => groupIdMap.ContainsKey(groupId))
+                    .Select(groupId => groupIdMap[groupId])
+                    .Distinct(StringComparer.Ordinal)
+                    .ToList();
+                Project.Characters.Add(existing);
+            }
+
+            characterIdMap[source.Id] = existing.Id;
+        }
+    }
+
+    private static string CreateUniqueId(HashSet<string> existingIds)
+    {
+        string id;
+        do
+        {
+            id = Guid.NewGuid().ToString("N");
+        }
+        while (!existingIds.Add(id));
+
+        return id;
+    }
+
+    private static PlotNode CloneNode(PlotNode source) => new()
+    {
+        Id = source.Id,
+        Type = source.Type,
+        Title = source.Title,
+        Body = source.Body,
+        Memo = source.Memo,
+        TagNames = [.. source.TagNames],
+        LegacyColorTag = source.LegacyColorTag,
+        CharacterIds = [.. source.CharacterIds],
+        X = source.X,
+        Y = source.Y,
+        IsPinned = source.IsPinned,
+        Appearance = source.Appearance?.Clone(),
+    };
+
+    private static PlotEdge CloneEdge(PlotEdge source) => new()
+    {
+        Id = source.Id,
+        FromId = source.FromId,
+        ToId = source.ToId,
+        Label = source.Label,
+        FromSide = source.FromSide,
+        ToSide = source.ToSide,
+    };
+
+    private static ColorTag CloneColorTag(ColorTag source) => new()
+    {
+        Name = source.Name,
+        Color = source.Color,
+    };
+
+    private static Character CloneCharacter(Character source) => new()
+    {
+        Id = source.Id,
+        Name = source.Name,
+        Color = source.Color,
+        Note = source.Note,
+        GroupIds = [.. source.GroupIds],
+    };
+
+    private static CharacterGroup CloneGroup(CharacterGroup source) => new()
+    {
+        Id = source.Id,
+        Name = source.Name,
+    };
+
+    private sealed record ClipboardSnapshot(
+        IReadOnlyList<PlotNode> Nodes,
+        IReadOnlyList<PlotEdge> Edges,
+        IReadOnlyList<ColorTag> Tags,
+        IReadOnlyList<Character> Characters,
+        IReadOnlyList<CharacterGroup> Groups);
+
     // ----- Layout -----
 
     /// <summary>0 = left-to-right; 1 = top-to-bottom.</summary>
@@ -623,12 +885,16 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(IsMultiNodeSelected));
         OnPropertyChanged(nameof(IsNothingSelected));
         OnPropertyChanged(nameof(HasNodeSelection));
+        OnPropertyChanged(nameof(CanCopy));
+        OnPropertyChanged(nameof(CanPaste));
         OnPropertyChanged(nameof(CanUnpinSelection));
         OnPropertyChanged(nameof(SelectedTagsSummary));
         OnPropertyChanged(nameof(SelectedCharactersSummary));
 
         SyncNodeOptionChecks();
         DeleteSelectedCommand.NotifyCanExecuteChanged();
+        CopyCommand.NotifyCanExecuteChanged();
+        PasteCommand.NotifyCanExecuteChanged();
         UnpinSelectionCommand.NotifyCanExecuteChanged();
         SelectionChanged?.Invoke(this, EventArgs.Empty);
     }

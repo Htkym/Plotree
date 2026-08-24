@@ -99,20 +99,24 @@ internal sealed class EdgeVisual
         UpdateArrow(_p2, _p3);
     }
 
-    public void UpdateGeometry(LayoutDirection direction)
+    public void UpdateGeometry(LayoutDirection direction, double zoom = 1, Point origin = default)
     {
-        var (p0, p3) = GetAnchors(direction);
+        var (worldP0, worldP3) = GetAnchors(direction);
+
+        var dx = worldP3.X - worldP0.X;
+        var dy = worldP3.Y - worldP0.Y;
+        var handle = Math.Clamp(Math.Sqrt(dx * dx + dy * dy) * 0.5, 40, 200);
 
         var fromSide = Edge.Model.FromSide ?? DefaultFromSide(direction);
         var toSide = Edge.Model.ToSide ?? DefaultToSide(direction);
-        var dx = p3.X - p0.X;
-        var dy = p3.Y - p0.Y;
-        var handle = Math.Clamp(Math.Sqrt(dx * dx + dy * dy) * 0.5, 40, 200);
-
         var fromNormal = GetSideNormal(fromSide);
         var toNormal = GetSideNormal(toSide);
-        var p1 = new Point(p0.X + fromNormal.X * handle, p0.Y + fromNormal.Y * handle);
-        var p2 = new Point(p3.X + toNormal.X * handle, p3.Y + toNormal.Y * handle);
+        var worldP1 = new Point(worldP0.X + fromNormal.X * handle, worldP0.Y + fromNormal.Y * handle);
+        var worldP2 = new Point(worldP3.X + toNormal.X * handle, worldP3.Y + toNormal.Y * handle);
+        var p0 = ToCanvas(worldP0, zoom, origin);
+        var p1 = ToCanvas(worldP1, zoom, origin);
+        var p2 = ToCanvas(worldP2, zoom, origin);
+        var p3 = ToCanvas(worldP3, zoom, origin);
 
         _curve.Data = BuildBezier(p0, p1, p2, p3);
         _hit.Data = BuildBezier(p0, p1, p2, p3);
@@ -120,6 +124,9 @@ internal sealed class EdgeVisual
         UpdateArrow(p2, p3);
         RefreshLabel();
     }
+
+    private static Point ToCanvas(Point world, double zoom, Point origin) =>
+        new((world.X + origin.X) * zoom, (world.Y + origin.Y) * zoom);
 
     /// <summary>Re-reads the edge label, updating chip text, visibility, and position.</summary>
     public void RefreshLabel()

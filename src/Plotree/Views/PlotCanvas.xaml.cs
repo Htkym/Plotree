@@ -22,16 +22,19 @@ namespace Plotree.Views;
 /// node/edge selection (single, additive and marquee), group drag, edge creation via side
 /// handles, card resize, and context menus.
 /// </summary>
-public sealed partial class PlotCanvas : UserControl
+public sealed partial class PlotCanvas : UserControl, INotifyPropertyChanged
 {
+    // VK_OEM_PLUS / VK_OEM_MINUS are not named members of Windows.System.VirtualKey.
     private const double MinZoom = 0.25;
     private const double MaxZoom = 4.0;
     private const double ZoomStep = 1.1;
     private const double WheelPanFactor = 0.5;
     private const double DragThreshold = 3;
     private const double HandleSize = 14;
+    private const double HandleTouchSize = 32;
     private const double EdgeTouchBand = 24;
     private const double GripSize = 12;
+    private const double ExtentPadding = 200;
 
     private enum DragMode
     {
@@ -53,7 +56,7 @@ public sealed partial class PlotCanvas : UserControl
     }
 
     private readonly Dictionary<NodeViewModel, NodeCard> _nodeVisuals = [];
-    private readonly Dictionary<NodeViewModel, List<Ellipse>> _handleVisuals = [];
+    private readonly Dictionary<NodeViewModel, List<Grid>> _handleVisuals = [];
     private readonly Dictionary<NodeViewModel, List<Rectangle>> _gripVisuals = [];
     private readonly Dictionary<EdgeViewModel, EdgeVisual> _edgeVisuals = [];
 
@@ -92,9 +95,16 @@ public sealed partial class PlotCanvas : UserControl
     private bool _isMarqueeApplied;
     private bool _isGroupDragging;
     private bool _dragMoved;
+    private double _zoom = 1;
+    private Point _worldOrigin;
+    private bool _isUpdatingExtent;
+    private bool _isGeometryGestureUpdating;
+    private bool _extentUpdatePending;
 
     /// <summary>Raised when a node is double-clicked (open the details panel, focus title).</summary>
     public event EventHandler<NodeViewModel>? NodeActivated;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public PlotCanvas()
     {
@@ -105,10 +115,16 @@ public sealed partial class PlotCanvas : UserControl
         ViewportGrid.PointerReleased += OnViewportPointerReleased;
         ViewportGrid.PointerCanceled += OnViewportPointerReleased;
         ViewportGrid.PointerCaptureLost += OnViewportPointerReleased;
-        ViewportGrid.PointerWheelChanged += OnViewportPointerWheelChanged;
+        // Register on the scroll content, before the ScrollViewer ancestor's class handler.
+        // handledEventsToo keeps the gesture alive when a child control handles the routed
+        // event, while e.Handled below prevents the ScrollViewer from applying a second
+        // built-in scroll after our explicit ChangeView/zoom operation.
+        WorldCanvas.AddHandler(
+            UIElement.PointerWheelChangedEvent,
+            new PointerEventHandler(OnViewportPointerWheelChanged),
+            handledEventsToo: true);
         ViewportGrid.RightTapped += OnViewportRightTapped;
-        ViewportGrid.SizeChanged += (_, e) =>
-            ViewportGrid.Clip = new RectangleGeometry { Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height) };
+        ViewportGrid.SizeChanged += OnViewportSizeChanged;
 
         AutomationProperties.SetName(ViewportGrid, Loc.Get("Automation_Canvas"));
         AutomationProperties.SetHelpText(ViewportGrid, Loc.Get("Help_CanvasGestures"));
@@ -139,7 +155,19 @@ public sealed partial class PlotCanvas : UserControl
 
     private LayoutDirection Direction => _viewModel?.Project.LayoutDirection ?? LayoutDirection.LeftToRight;
 
-    private double Zoom => WorldTransform.ScaleX;
+    private double Zoom => _zoom;
+
+    /// <summary>Whether another zoom-in step can be applied.</summary>
+    public bool CanZoomIn => Zoom < MaxZoom;
+
+    /// <summary>Whether another zoom-out step can be applied.</summary>
+    public bool CanZoomOut => Zoom > MinZoom;
+
+    /// <summary>Zooms in around the center of the visible viewport.</summary>
+    public void ZoomIn() => ZoomAtViewportCenter(ZoomStep);
+
+    /// <summary>Zooms out around the center of the visible viewport.</summary>
+    public void ZoomOut() => ZoomAtViewportCenter(1 / ZoomStep);
 
     /// <summary>Adds a node of the given type centered in the current viewport.</summary>
     public void AddNodeAtViewportCenter(NodeType type)
@@ -163,6 +191,15 @@ public sealed partial class PlotCanvas : UserControl
     private void OnGraphChanged(object? sender, EventArgs e) => RebuildAll();
 
     private void OnSelectionChanged(object? sender, EventArgs e) => UpdateSelectionEmphasis();
+
+    private void OnViewportSizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        ViewportGrid.Clip = new RectangleGeometry
+        {
+            Rect = new Rect(0, 0, e.NewSize.Width, e.NewSize.Height),
+        };
+        UpdateWorldExtent();
+    }
 
     // ----- Visual tree construction -----
 
@@ -196,12 +233,18 @@ public sealed partial class PlotCanvas : UserControl
         _resizeNode = null;
         _pendingToggleNode = null;
         _isGroupDragging = false;
+        _isGeometryGestureUpdating = false;
+        _extentUpdatePending = false;
         _previewLine = null;
 
         if (_viewModel is null)
         {
+            WorldCanvas.Width = Math.Max(1, ViewportGrid.ActualWidth);
+            WorldCanvas.Height = Math.Max(1, ViewportGrid.ActualHeight);
             return;
         }
+
+        UpdateWorldExtent();
 
         foreach (var edge in _viewModel.Edges)
         {
@@ -240,8 +283,7 @@ public sealed partial class PlotCanvas : UserControl
     {
         var card = new NodeCard(node);
         AutomationProperties.SetAutomationId(card, $"Node_{node.Model.Id}");
-        Canvas.SetLeft(card, node.X);
-        Canvas.SetTop(card, node.Y);
+        PositionNodeCard(node, card);
 
         card.PointerPressed += (s, e) => OnNodePointerPressed(card, node, e);
         card.PointerMoved += (s, e) => OnNodePointerMoved(node, e);
@@ -265,19 +307,30 @@ public sealed partial class PlotCanvas : UserControl
         // Any side can start a connection. Endings are terminal and therefore omit all handles.
         if (node.Type != NodeType.Ending)
         {
-            var handles = new List<Ellipse>();
+            var handles = new List<Grid>();
             foreach (var side in Enum.GetValues<EdgeSide>())
             {
-                var handle = new Ellipse
+                var handleVisual = new Ellipse
                 {
                     Width = HandleSize,
                     Height = HandleSize,
                     Fill = GetThemeBrush("AccentFillColorDefaultBrush"),
                     Stroke = new SolidColorBrush(Colors.White),
                     StrokeThickness = 2,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    IsHitTestVisible = false,
+                };
+                var handle = new Grid
+                {
+                    Width = HandleTouchSize,
+                    Height = HandleTouchSize,
+                    Background = new SolidColorBrush(Colors.Transparent),
                     Tag = side,
                     Visibility = Visibility.Collapsed,
                 };
+                handle.Children.Add(handleVisual);
+                ApplyHandleZoom(handle);
                 AutomationProperties.SetAutomationId(handle, $"ConnectionHandle_{node.Model.Id}_{side}");
                 // A shape with only an AutomationId stays in the UIA raw view; the accessible
                 // name is what promotes it into the control view for screen readers (and makes
@@ -318,6 +371,7 @@ public sealed partial class PlotCanvas : UserControl
                 Tag = corner,
                 Visibility = Visibility.Collapsed,
             };
+            ApplyZoom(grip, GripSize);
             AutomationProperties.SetAutomationId(grip, $"ResizeGrip_{node.Model.Id}_{corner}");
             AutomationProperties.SetName(grip, ResizeGripName);
             ToolTipService.SetToolTip(grip, ResizeGripName);
@@ -326,6 +380,7 @@ public sealed partial class PlotCanvas : UserControl
             grip.PointerMoved += (s, e) => OnGripPointerMoved(node, e);
             grip.PointerReleased += (s, e) => OnGripPointerReleased(grip, node, e);
             grip.PointerCanceled += (s, e) => OnGripPointerReleased(grip, node, e);
+            grip.PointerCaptureLost += (s, e) => OnGripPointerReleased(grip, node, e);
 
             grips.Add(grip);
             NodeLayer.Children.Add(grip);
@@ -359,7 +414,7 @@ public sealed partial class PlotCanvas : UserControl
         _edgeVisuals[edge] = visual;
         IndexIncidentEdge(edge, visual);
         visual.AddTo(EdgeLayer);
-        visual.UpdateGeometry(Direction);
+        visual.UpdateGeometry(Direction, Zoom, _worldOrigin);
     }
 
     private void OnNodeViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -373,17 +428,18 @@ public sealed partial class PlotCanvas : UserControl
         {
             if (_nodeVisuals.TryGetValue(node, out var card))
             {
-                Canvas.SetLeft(card, node.X);
-                Canvas.SetTop(card, node.Y);
+                PositionNodeCard(node, card);
             }
 
             UpdateNodeGeometry(node);
+            RequestWorldExtentUpdate();
         }
         else if (e.PropertyName is nameof(NodeViewModel.EffectiveWidth) or nameof(NodeViewModel.EffectiveHeight))
         {
             // The card itself is bound to the resolved size; only the surrounding
             // geometry (ports, grips, incident edges) has to follow.
             UpdateNodeGeometry(node);
+            RequestWorldExtentUpdate();
         }
         else if (e.PropertyName is nameof(NodeViewModel.Type))
         {
@@ -408,7 +464,7 @@ public sealed partial class PlotCanvas : UserControl
         {
             foreach (var visual in visuals)
             {
-                visual.UpdateGeometry(Direction);
+                visual.UpdateGeometry(Direction, Zoom, _worldOrigin);
             }
         }
     }
@@ -456,16 +512,6 @@ public sealed partial class PlotCanvas : UserControl
             return;
         }
 
-        // Cards themselves are the primary touch connection target. The explicit handles
-        // remain useful as discoverable mouse affordances, but touch has no hover to reveal
-        // them. Visible corner grips are siblings above the card and receive their own press
-        // first, so this does not steal resize gestures.
-        if (node.Type != NodeType.Ending && TryGetEdgeSide(node, ToWorld(point.Position), out var side))
-        {
-            BeginEdgeDrag(card, node, side, e);
-            return;
-        }
-
         _pendingToggleNode = null;
 
         if (IsAdditiveModifier(e.KeyModifiers))
@@ -502,6 +548,7 @@ public sealed partial class PlotCanvas : UserControl
         _dragMode = DragMode.Node;
         _dragNode = node;
         _dragMoved = false;
+        _isGeometryGestureUpdating = true;
 
         _dragNodes.Clear();
         if (node.IsSelected && _viewModel is not null)
@@ -570,7 +617,7 @@ public sealed partial class PlotCanvas : UserControl
         // One batched pass over the distinct incident edges instead of one pass per moved node.
         foreach (var visual in _dragEdgeVisuals)
         {
-            visual.UpdateGeometry(Direction);
+            visual.UpdateGeometry(Direction, Zoom, _worldOrigin);
         }
 
         e.Handled = true;
@@ -604,6 +651,7 @@ public sealed partial class PlotCanvas : UserControl
         _dragNodes.Clear();
 
         card.ReleasePointerCaptures();
+        _isGeometryGestureUpdating = false;
 
         if (moved)
         {
@@ -622,6 +670,7 @@ public sealed partial class PlotCanvas : UserControl
             _viewModel?.SelectNode(node);
         }
 
+        FlushPendingWorldExtent();
         e.Handled = true;
     }
 
@@ -641,6 +690,7 @@ public sealed partial class PlotCanvas : UserControl
         _resizeNode = node;
         _resizeCorner = corner;
         _dragMoved = false;
+        _isGeometryGestureUpdating = true;
         _resizeStartWorld = ToWorld(point.Position);
         _resizeOrigin = new Rect(node.X, node.Y, node.EffectiveWidth, node.EffectiveHeight);
 
@@ -697,6 +747,7 @@ public sealed partial class PlotCanvas : UserControl
         grip.ReleasePointerCaptures();
         _dragMode = DragMode.None;
         _resizeNode = null;
+        _isGeometryGestureUpdating = false;
 
         if (_dragMoved)
         {
@@ -705,6 +756,7 @@ public sealed partial class PlotCanvas : UserControl
             UpdateNodeGeometry(node);
         }
 
+        FlushPendingWorldExtent();
         _dragMoved = false;
         e.Handled = true;
     }
@@ -717,11 +769,43 @@ public sealed partial class PlotCanvas : UserControl
         _ => new Point(node.X + node.EffectiveWidth, node.Y + node.EffectiveHeight),
     };
 
-    private static void PositionGrip(NodeViewModel node, Rectangle grip, ResizeCorner corner)
+    private void PositionNodeCard(NodeViewModel node, NodeCard card)
+    {
+        Canvas.SetLeft(card, (node.X + _worldOrigin.X) * Zoom);
+        Canvas.SetTop(card, (node.Y + _worldOrigin.Y) * Zoom);
+        card.RenderTransformOrigin = new Point(0, 0);
+        card.RenderTransform = new CompositeTransform
+        {
+            ScaleX = Zoom,
+            ScaleY = Zoom,
+        };
+    }
+
+    private void ApplyZoom(FrameworkElement element, double size)
+    {
+        // Port and grip sizes are set in content pixels because the canvas itself is laid out
+        // in zoomed coordinates rather than relying on a RenderTransform for its extent.
+        element.Width = size * Zoom;
+        element.Height = size * Zoom;
+    }
+
+    private void ApplyHandleZoom(Grid handle)
+    {
+        var visualSize = HandleSize * Zoom;
+        handle.Width = Math.Max(HandleTouchSize, visualSize);
+        handle.Height = Math.Max(HandleTouchSize, visualSize);
+        if (handle.Children[0] is Ellipse visual)
+        {
+            visual.Width = visualSize;
+            visual.Height = visualSize;
+        }
+    }
+
+    private void PositionGrip(NodeViewModel node, Rectangle grip, ResizeCorner corner)
     {
         var point = GetCorner(node, corner);
-        Canvas.SetLeft(grip, point.X - GripSize / 2);
-        Canvas.SetTop(grip, point.Y - GripSize / 2);
+        Canvas.SetLeft(grip, (point.X + _worldOrigin.X) * Zoom - grip.Width / 2);
+        Canvas.SetTop(grip, (point.Y + _worldOrigin.Y) * Zoom - grip.Height / 2);
     }
 
     /// <summary>
@@ -744,7 +828,7 @@ public sealed partial class PlotCanvas : UserControl
 
     // ----- Edge creation via node edges and side handles -----
 
-    private void OnHandlePointerPressed(Ellipse handle, NodeViewModel node, EdgeSide side, PointerRoutedEventArgs e)
+    private void OnHandlePointerPressed(Grid handle, NodeViewModel node, EdgeSide side, PointerRoutedEventArgs e)
     {
         if (!e.GetCurrentPoint(ViewportGrid).Properties.IsLeftButtonPressed)
         {
@@ -760,7 +844,7 @@ public sealed partial class PlotCanvas : UserControl
         _edgeSource = node;
         _edgeSourceSide = side;
 
-        var anchor = GetAnchor(node, side);
+        var anchor = ToCanvas(GetAnchor(node, side));
         _previewLine = new Line
         {
             X1 = anchor.X,
@@ -790,13 +874,13 @@ public sealed partial class PlotCanvas : UserControl
             return;
         }
 
-        var world = ToWorld(e.GetCurrentPoint(ViewportGrid).Position);
-        _previewLine.X2 = world.X;
-        _previewLine.Y2 = world.Y;
+        var canvasPoint = ToCanvas(ToWorld(e.GetCurrentPoint(ViewportGrid).Position));
+        _previewLine.X2 = canvasPoint.X;
+        _previewLine.Y2 = canvasPoint.Y;
         e.Handled = true;
     }
 
-    private void OnHandlePointerReleased(Ellipse handle, PointerRoutedEventArgs e)
+    private void OnHandlePointerReleased(Grid handle, PointerRoutedEventArgs e)
     {
         EndEdgeDrag(handle, e);
     }
@@ -848,11 +932,11 @@ public sealed partial class PlotCanvas : UserControl
         _ => new Point(node.X + node.EffectiveWidth, node.Y + node.EffectiveHeight / 2),
     };
 
-    private void PositionHandle(NodeViewModel node, Ellipse handle, EdgeSide side)
+    private void PositionHandle(NodeViewModel node, Grid handle, EdgeSide side)
     {
         var anchor = GetAnchor(node, side);
-        Canvas.SetLeft(handle, anchor.X - HandleSize / 2);
-        Canvas.SetTop(handle, anchor.Y - HandleSize / 2);
+        Canvas.SetLeft(handle, (anchor.X + _worldOrigin.X) * Zoom - handle.Width / 2);
+        Canvas.SetTop(handle, (anchor.Y + _worldOrigin.Y) * Zoom - handle.Height / 2);
     }
 
     private NodeViewModel? FindNodeAt(Point world)
@@ -931,7 +1015,8 @@ public sealed partial class PlotCanvas : UserControl
         SetHandlesVisible(
             node,
             _hoverNode == node
-            || _edgeSource == node);
+            || _edgeSource == node
+            || ReferenceEquals(_viewModel?.SelectedNode, node));
 
     private void SetHoverNode(NodeViewModel? node)
     {
@@ -1066,6 +1151,42 @@ public sealed partial class PlotCanvas : UserControl
         AddCreateItem(flyout, NodeType.Ending, Loc.Get("Context_AddEndingHere"), "\uE71A", world);
         flyout.Items.Add(new MenuFlyoutSeparator());
 
+        flyout.Items.Add(CreateClipboardItem(
+            "Context_Copy",
+            "\uE8C8",
+            "ContextCopy",
+            _viewModel?.CopyCommand,
+            VirtualKey.C));
+        flyout.Items.Add(CreateClipboardItem(
+            "Context_Paste",
+            "\uE77F",
+            "ContextPaste",
+            _viewModel?.PasteCommand,
+            VirtualKey.V));
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        var zoomIn = new MenuFlyoutItem
+        {
+            Text = Loc.Get("Context_ZoomIn"),
+            Icon = new FontIcon { Glyph = "\uE8A3" },
+            IsEnabled = CanZoomIn,
+        };
+        zoomIn.Click += (_, _) => ZoomIn();
+        AutomationProperties.SetAutomationId(zoomIn, "ContextZoomIn");
+        flyout.Items.Add(zoomIn);
+
+        var zoomOut = new MenuFlyoutItem
+        {
+            Text = Loc.Get("Context_ZoomOut"),
+            Icon = new FontIcon { Glyph = "\uE71F" },
+            IsEnabled = CanZoomOut,
+        };
+        zoomOut.Click += (_, _) => ZoomOut();
+        AutomationProperties.SetAutomationId(zoomOut, "ContextZoomOut");
+        flyout.Items.Add(zoomOut);
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
         var selectAll = new MenuFlyoutItem
         {
             Text = Loc.Get("Context_SelectAll"),
@@ -1083,6 +1204,29 @@ public sealed partial class PlotCanvas : UserControl
 
         flyout.ShowAt(ViewportGrid, position);
         e.Handled = true;
+    }
+
+    private static MenuFlyoutItem CreateClipboardItem(
+        string textKey,
+        string glyph,
+        string automationId,
+        System.Windows.Input.ICommand? command,
+        VirtualKey key)
+    {
+        var item = new MenuFlyoutItem
+        {
+            Text = Loc.Get(textKey),
+            Icon = new FontIcon { Glyph = glyph },
+            Command = command,
+        };
+        item.KeyboardAccelerators.Add(new KeyboardAccelerator
+        {
+            Key = key,
+            Modifiers = VirtualKeyModifiers.Control,
+            IsEnabled = false, // Display only: the page-level accelerator owns the shortcut.
+        });
+        AutomationProperties.SetAutomationId(item, automationId);
+        return item;
     }
 
     private void AddCreateItem(MenuFlyout flyout, NodeType type, string text, string glyph, Point world)
@@ -1104,6 +1248,19 @@ public sealed partial class PlotCanvas : UserControl
         var selectedCount = _viewModel?.SelectedNodeCount ?? 1;
         var isMultiple = selectedCount > 1;
 
+        var copy = CreateClipboardItem(
+            "Context_Copy",
+            "\uE8C8",
+            "ContextCopy",
+            _viewModel?.CopyCommand,
+            VirtualKey.C);
+        var paste = CreateClipboardItem(
+            "Context_Paste",
+            "\uE77F",
+            "ContextPaste",
+            _viewModel?.PasteCommand,
+            VirtualKey.V);
+
         var unpin = new MenuFlyoutItem
         {
             Text = isMultiple ? Loc.Format("Context_UnpinSelected", selectedCount) : Loc.Get("Context_Unpin"),
@@ -1121,6 +1278,9 @@ public sealed partial class PlotCanvas : UserControl
         AutomationProperties.SetAutomationId(delete, "ContextDeleteNode");
 
         var flyout = new MenuFlyout();
+        flyout.Items.Add(copy);
+        flyout.Items.Add(paste);
+        flyout.Items.Add(new MenuFlyoutSeparator());
         flyout.Items.Add(unpin);
         flyout.Items.Add(new MenuFlyoutSeparator());
         flyout.Items.Add(delete);
@@ -1146,6 +1306,109 @@ public sealed partial class PlotCanvas : UserControl
         e.Handled = true;
     }
 
+    // ----- Canvas extents -----
+
+    /// <summary>
+    /// Recalculates the scrollable content in zoomed content pixels. The origin is moved into
+    /// the positive canvas space so nodes with negative coordinates remain reachable by the
+    /// automatic scroll bars. A viewport anchor is retained whenever the extent changes.
+    /// </summary>
+    private void UpdateWorldExtent(Point? anchorViewport = null, Point? anchorWorldOverride = null)
+    {
+        if (_isUpdatingExtent)
+        {
+            return;
+        }
+
+        var viewport = anchorViewport
+            ?? new Point(ViewportGrid.ActualWidth / 2, ViewportGrid.ActualHeight / 2);
+        var anchorWorld = anchorWorldOverride ?? ToWorld(viewport);
+        var extent = CanvasExtentCalculator.Calculate(
+            _viewModel?.Nodes.Select(node => new CanvasNodeBounds(
+                node.X,
+                node.Y,
+                node.EffectiveWidth,
+                node.EffectiveHeight)) ?? Enumerable.Empty<CanvasNodeBounds>(),
+            ViewportGrid.ActualWidth,
+            ViewportGrid.ActualHeight,
+            Zoom,
+            ExtentPadding,
+            anchorWorld.X,
+            anchorWorld.Y,
+            viewport.X,
+            viewport.Y);
+        var width = extent.Width;
+        var height = extent.Height;
+        _worldOrigin = new Point(extent.OriginX, extent.OriginY);
+
+        _isUpdatingExtent = true;
+        try
+        {
+            WorldCanvas.Width = width * Zoom;
+            WorldCanvas.Height = height * Zoom;
+
+            foreach (var (node, card) in _nodeVisuals)
+            {
+                PositionNodeCard(node, card);
+                if (_handleVisuals.TryGetValue(node, out var handles))
+                {
+                    foreach (var handle in handles)
+                    {
+                        ApplyHandleZoom(handle);
+                        PositionHandle(node, handle, (EdgeSide)handle.Tag);
+                    }
+                }
+
+                if (_gripVisuals.TryGetValue(node, out var grips))
+                {
+                    foreach (var grip in grips)
+                    {
+                        ApplyZoom(grip, GripSize);
+                        PositionGrip(node, grip, (ResizeCorner)grip.Tag);
+                    }
+                }
+            }
+
+            foreach (var visual in _edgeVisuals.Values)
+            {
+                visual.UpdateGeometry(Direction, Zoom, _worldOrigin);
+            }
+
+            var horizontalOffset = (anchorWorld.X + _worldOrigin.X) * Zoom - viewport.X;
+            var verticalOffset = (anchorWorld.Y + _worldOrigin.Y) * Zoom - viewport.Y;
+            WorldScrollViewer.ChangeView(horizontalOffset, verticalOffset, null, disableAnimation: true);
+        }
+        finally
+        {
+            _isUpdatingExtent = false;
+        }
+    }
+
+    private void RequestWorldExtentUpdate()
+    {
+        if (_isGeometryGestureUpdating)
+        {
+            _extentUpdatePending = true;
+            return;
+        }
+
+        UpdateWorldExtent();
+    }
+
+    private void FlushPendingWorldExtent()
+    {
+        if (!_extentUpdatePending)
+        {
+            return;
+        }
+
+        _extentUpdatePending = false;
+        UpdateWorldExtent();
+    }
+
+    private Point ToCanvas(Point world) =>
+        new((world.X + _worldOrigin.X) * Zoom, (world.Y + _worldOrigin.Y) * Zoom);
+
     // ----- Pan, marquee & zoom -----
 
     private void OnViewportPointerPressed(object sender, PointerRoutedEventArgs e)
@@ -1154,12 +1417,13 @@ public sealed partial class PlotCanvas : UserControl
         var isBackground = IsBackgroundElement(e.OriginalSource);
         var isLeftOnBackground = point.Properties.IsLeftButtonPressed && isBackground;
 
-        // Middle button always pans; left-drag pans only while Space is held, because plain
-        // left-drag on empty canvas now draws the selection marquee.
+        // Middle button and Space+left-drag always pan. Shift+left-drag on empty canvas
+        // starts a marquee; a plain left-drag pans like a document editor.
         if (point.Properties.IsMiddleButtonPressed || (isLeftOnBackground && IsSpaceHeld()))
         {
             _dragMode = DragMode.Pan;
             _lastPointerPosition = point.Position;
+            _dragMoved = false;
             ViewportGrid.CapturePointer(e.Pointer);
             e.Handled = true;
             return;
@@ -1167,11 +1431,20 @@ public sealed partial class PlotCanvas : UserControl
 
         if (isLeftOnBackground)
         {
-            _dragMode = DragMode.Marquee;
-            _isMarqueeAdditive = IsAdditiveModifier(e.KeyModifiers);
-            _isMarqueeApplied = false;
-            _marqueeStart = point.Position;
-            _lastPointerPosition = point.Position;
+            if (e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift))
+            {
+                _dragMode = DragMode.Marquee;
+                _isMarqueeAdditive = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control);
+                _isMarqueeApplied = false;
+                _marqueeStart = point.Position;
+                _lastPointerPosition = point.Position;
+            }
+            else
+            {
+                _dragMode = DragMode.Pan;
+                _lastPointerPosition = point.Position;
+            }
+
             _dragMoved = false;
             _marqueeHits.Clear();
             ViewportGrid.CapturePointer(e.Pointer);
@@ -1185,8 +1458,20 @@ public sealed partial class PlotCanvas : UserControl
 
         if (_dragMode == DragMode.Pan)
         {
-            WorldTransform.TranslateX += position.X - _lastPointerPosition.X;
-            WorldTransform.TranslateY += position.Y - _lastPointerPosition.Y;
+            var deltaX = position.X - _lastPointerPosition.X;
+            var deltaY = position.Y - _lastPointerPosition.Y;
+            if (!_dragMoved
+                && Math.Abs(deltaX) + Math.Abs(deltaY) < DragThreshold)
+            {
+                return;
+            }
+
+            _dragMoved = true;
+            WorldScrollViewer.ChangeView(
+                WorldScrollViewer.HorizontalOffset - deltaX,
+                WorldScrollViewer.VerticalOffset - deltaY,
+                null,
+                disableAnimation: true);
             _lastPointerPosition = position;
             e.Handled = true;
         }
@@ -1241,6 +1526,10 @@ public sealed partial class PlotCanvas : UserControl
                 _viewModel?.ClearSelection();
             }
         }
+        else if (!moved)
+        {
+            _viewModel?.ClearSelection();
+        }
 
         e.Handled = true;
     }
@@ -1281,8 +1570,8 @@ public sealed partial class PlotCanvas : UserControl
 
     private bool IntersectsBand(NodeViewModel node, Rect band)
     {
-        var left = node.X * Zoom + WorldTransform.TranslateX;
-        var top = node.Y * Zoom + WorldTransform.TranslateY;
+        var left = (node.X + _worldOrigin.X) * Zoom - WorldScrollViewer.HorizontalOffset;
+        var top = (node.Y + _worldOrigin.Y) * Zoom - WorldScrollViewer.VerticalOffset;
         var right = left + node.EffectiveWidth * Zoom;
         var bottom = top + node.EffectiveHeight * Zoom;
 
@@ -1319,38 +1608,57 @@ public sealed partial class PlotCanvas : UserControl
         }
         else if (e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift) || point.Properties.IsHorizontalMouseWheel)
         {
-            WorldTransform.TranslateX += delta * WheelPanFactor;
+            WorldScrollViewer.ChangeView(
+                WorldScrollViewer.HorizontalOffset - delta * WheelPanFactor,
+                null,
+                null,
+                disableAnimation: true);
         }
         else
         {
-            WorldTransform.TranslateY += delta * WheelPanFactor;
+            WorldScrollViewer.ChangeView(
+                null,
+                WorldScrollViewer.VerticalOffset - delta * WheelPanFactor,
+                null,
+                disableAnimation: true);
         }
 
         e.Handled = true;
     }
 
+    private void ZoomAtViewportCenter(double factor) =>
+        ZoomAt(new Point(ViewportGrid.ActualWidth / 2, ViewportGrid.ActualHeight / 2), factor);
+
     private void ZoomAt(Point center, double factor)
     {
-        var oldScale = WorldTransform.ScaleX;
-        var newScale = Math.Clamp(oldScale * factor, MinZoom, MaxZoom);
-        if (Math.Abs(newScale - oldScale) < 0.0001)
+        var oldZoom = Zoom;
+        var newZoom = Math.Clamp(oldZoom * factor, MinZoom, MaxZoom);
+        if (Math.Abs(newZoom - oldZoom) < 0.0001)
         {
             return;
         }
 
-        var ratio = newScale / oldScale;
-        WorldTransform.TranslateX = center.X - ratio * (center.X - WorldTransform.TranslateX);
-        WorldTransform.TranslateY = center.Y - ratio * (center.Y - WorldTransform.TranslateY);
-        WorldTransform.ScaleX = newScale;
-        WorldTransform.ScaleY = newScale;
+        var world = ToWorld(center);
+        _zoom = newZoom;
+        UpdateWorldExtent(center, world);
+
+        WorldScrollViewer.ChangeView(
+            (world.X + _worldOrigin.X) * newZoom - center.X,
+            (world.Y + _worldOrigin.Y) * newZoom - center.Y,
+            null,
+            disableAnimation: true);
+
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanZoomIn)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanZoomOut)));
     }
 
     private Point ToWorld(Point viewport) => new(
-        (viewport.X - WorldTransform.TranslateX) / Zoom,
-        (viewport.Y - WorldTransform.TranslateY) / Zoom);
+        (viewport.X + WorldScrollViewer.HorizontalOffset) / Zoom - _worldOrigin.X,
+        (viewport.Y + WorldScrollViewer.VerticalOffset) / Zoom - _worldOrigin.Y);
 
     private bool IsBackgroundElement(object source) =>
         ReferenceEquals(source, ViewportGrid)
+        || ReferenceEquals(source, WorldScrollViewer)
         || ReferenceEquals(source, WorldCanvas)
         || ReferenceEquals(source, EdgeLayer)
         || ReferenceEquals(source, NodeLayer);
