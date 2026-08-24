@@ -1,6 +1,6 @@
 ---
 title: "Plotree User Manual"
-date: "2026-08-09T00:00:00Z"
+date: "2026-08-24T00:00:00Z"
 summary: "Create, connect, organize, arrange, and export branching story projects in Plotree."
 sidebar_position: 1
 sidebar_label: "User manual (English)"
@@ -25,13 +25,15 @@ To open an existing project when launching the app, pass its `.plotree` path as 
 
 1. Add a **Scene**, **Choice**, or **Ending** from the toolbar or the canvas context menu.
 2. Select a node to edit its title, body text, and private writing memo in the details panel.
-3. Drag from a round handle on a scene or choice node to another node to create a connection.
+3. Select or point to a scene or choice node, then drag from its round handle to another node to create a connection.
 4. Select a connection to give it a choice label.
 5. Add more endings to show alternate outcomes.
 
 ![Editing a selected story node](../images/screenshots/02-node-details-en.png)
 
 Ending nodes do not offer outgoing connection handles. Plotree also prevents self-connections, duplicate connections, and connections that target the start node.
+
+Use **Ctrl+C** and **Ctrl+V**, the upper toolbar buttons, or a canvas context menu to copy and paste selected nodes. If both endpoints of a connection are copied, that connection is included. Referenced color tags, characters, and character groups are also carried into the destination project. Each paste is offset from the source so the new nodes remain visible.
 
 ## Organize story context
 
@@ -45,14 +47,16 @@ Use **Characters** to create people in the story and **Groups** to organize them
 
 Drag a node to move it. Moved nodes become pinned, so automatic layout preserves their positions. Choose **Left to right** or **Top to bottom** from the layout direction list, then select **Auto layout** to arrange unpinned nodes. Use **Relayout all** from the split-button menu to clear pins and arrange every node.
 
-The canvas supports these gestures:
+Horizontal and vertical scroll bars appear automatically when graph elements extend beyond the visible area. The canvas supports these gestures:
 
 | Task | Action |
 |---|---|
-| Pan | Middle-button drag, or hold Space while left-dragging |
-| Zoom | Ctrl + mouse wheel |
+| Pan | Left-drag empty canvas, middle-button drag, or hold Space while left-dragging |
+| Scroll | Mouse wheel vertically, or Shift + mouse wheel horizontally |
+| Zoom | Ctrl + mouse wheel, Ctrl++ / Ctrl+-, the upper toolbar buttons, or the canvas context menu |
 | Select a node | Click it |
-| Select several nodes | Drag on empty canvas, or Ctrl/Shift-click nodes |
+| Select several nodes | Shift + drag on empty canvas, or Ctrl/Shift-click nodes |
+| Add a marquee to the selection | Ctrl+Shift + drag on empty canvas |
 | Select all nodes | Ctrl+A outside a text field |
 | Remove a selection | Esc |
 | Move several nodes | Drag one of the selected nodes |
@@ -65,7 +69,7 @@ Select **Appearance** to configure default header color, width, height, and card
 
 ## Edit safely
 
-Use **Ctrl+Z** and **Ctrl+Y** or the toolbar buttons to undo and redo document changes. Text edits and node drag or resize gestures are collected as single history operations. Delete a selected node or connection with the Delete key or its context menu.
+Use **Ctrl+Z** and **Ctrl+Y** or the toolbar buttons to undo and redo document changes. Text edits, node drag or resize gestures, and each paste are collected as single history operations. Delete a selected node or connection with the Delete key or its context menu.
 
 ## Export
 

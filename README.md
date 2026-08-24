@@ -22,6 +22,8 @@ See [Support](SUPPORT.md) and the [privacy policy](https://htkym.github.io/Plotr
 
 - Create scene, choice, and ending nodes, then drag from a node handle to create labeled connections.
 - Select multiple nodes to move, tag, assign characters, unpin, or delete them together.
+- Copy and paste selected nodes from the toolbar, context menu, or Ctrl+C / Ctrl+V. Connections between copied nodes and their referenced tags and characters are preserved.
+- Navigate large graphs with automatic horizontal and vertical scroll bars, canvas panning, mouse-wheel scrolling, and zoom controls.
 - Combine automatic layered layout with manually pinned nodes.
 - Track node body text, writing memos, color tags, characters, and character groups.
 - Export the graph as PNG or SVG, or export story routes as Markdown or plain text.
