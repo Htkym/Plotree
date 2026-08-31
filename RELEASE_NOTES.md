@@ -16,7 +16,10 @@
 
 ## ダウンロード
 
-`Plotree_1.0.4.0_x64_ARM64.msixbundle` には x64 と ARM64 のパッケージが含まれています。
+- [Microsoft Store](https://apps.microsoft.com/detail/9pfl8jdmmtx6)（推奨）からインストールできます。
+- GitHub から直接インストールする場合は、`Plotree_1.0.4.0_DirectInstaller.zip` をダウンロードしてすべて展開し、`Install-Plotree.bat` を実行してください。初回は自己署名証明書を登録するため、管理者の許可が必要です。
+
+直接インストール版には x64 と ARM64 のパッケージが含まれています。自動更新には対応していません。
 
 # Plotree v1.0.3
 

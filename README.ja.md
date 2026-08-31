@@ -10,6 +10,15 @@ WinUI 3 (Windows App SDK) 製の Windows デスクトップアプリです。
 
 ノード、選択肢、接続線を使って物語の流れを組み立て、タグ・登場人物・レイアウト・外観を一つのプロジェクトで管理できます。
 
+## インストール
+
+次のどちらかの方法でインストールできます。
+
+- [Microsoft Store](https://apps.microsoft.com/detail/9pfl8jdmmtx6)（推奨）: 証明書の確認と更新が自動で行われます。
+- [GitHub Releases](https://github.com/Htkym/Plotree/releases/latest) から直接インストール: `Plotree_<バージョン>_DirectInstaller.zip` をダウンロードしてすべて展開し、`Install-Plotree.bat` を実行します。
+
+GitHub 版は自己署名証明書を使用するため、初回インストール時に管理者の許可が必要です。インストーラーは、同梱された証明書が MSIX バンドルの署名と一致することを確認してから、証明書を Windows の「信頼されたユーザー」ストアへ登録します。GitHub 版は自動更新されないため、新しいリリースごとにインストーラーを実行してください。
+
 ## ユーザーマニュアル
 
 [日本語版ユーザーマニュアル](https://htkym.github.io/Plotree/posts/user-manual-ja.html) | [English user manual](https://htkym.github.io/Plotree/posts/user-manual-en.html)
@@ -51,6 +60,12 @@ dotnet build .\Plotree.slnx -p:Platform=x64
 実行時は exe を直接起動せず、WinApp CLI の `winapp run`（または WinUI の BuildAndRun ワークフロー）を使用してください。
 
 `.plotree` ファイルのパスを引数に渡すと、そのプロジェクトを開いた状態で起動します。
+
+MSIX バンドルと `.cer` を作成した後、GitHub 配布用 ZIP は次のコマンドで生成できます。
+
+```powershell
+.\scripts\New-DirectInstaller.ps1 -PackageDirectory .\src\Plotree\AppPackages\<バージョン>
+```
 
 ## 基本操作
 

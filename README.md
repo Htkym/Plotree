@@ -8,6 +8,15 @@ Plotree is a Windows desktop app for outlining branching stories for novels and 
 
 Use the canvas to connect narrative beats, edit a node's synopsis and memo in the details panel, and organize the project with color tags, characters, groups, layouts, and card appearance settings.
 
+## Install
+
+Choose either installation method:
+
+- [Microsoft Store](https://apps.microsoft.com/detail/9pfl8jdmmtx6) (recommended): certificate trust and updates are handled automatically.
+- Direct installation from [GitHub Releases](https://github.com/Htkym/Plotree/releases/latest): download and extract `Plotree_<version>_DirectInstaller.zip`, then run `Install-Plotree.bat`.
+
+The GitHub version uses a self-signed certificate, so administrator approval is required during the first installation. The installer verifies that the included certificate matches the MSIX bundle before adding it to the Windows Trusted People store. The GitHub version does not update automatically; run the installer again for each new release.
+
 ## User manuals
 
 [English user manual](https://htkym.github.io/Plotree/posts/user-manual-en.html) | [日本語版ユーザーマニュアル](https://htkym.github.io/Plotree/posts/user-manual-ja.html)
@@ -43,6 +52,12 @@ dotnet build .\Plotree.slnx -p:Platform=x64
 ```
 
 Use `winapp run` or the WinUI BuildAndRun workflow to launch a development build rather than starting the executable directly.
+
+After creating an MSIX bundle and its `.cer` file, build the GitHub direct installer with:
+
+```powershell
+.\scripts\New-DirectInstaller.ps1 -PackageDirectory .\src\Plotree\AppPackages\<version>
+```
 
 ## License
 
