@@ -40,7 +40,12 @@ jobs:
         uses: actions/configure-pages@v6
 
       - name: Generate static site
-        run: dotnet run --project ./tools/Plotree.Site -- --output ./site/_site
+        run: dotnet run --project ./tools/Plotree.Site -- --output ./.artifacts/site
+
+      - name: Stage public site
+        run: |
+          mkdir -p ./site/_site
+          rsync -a --delete --exclude='.lithosharp-*' ./.artifacts/site/ ./site/_site/
 
       - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
