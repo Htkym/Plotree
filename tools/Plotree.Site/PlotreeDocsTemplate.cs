@@ -39,7 +39,11 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         }
 
         var languageSwitch = BuildLanguageSwitch(relativePath, context);
-        html = html.Replace("</header>", $"{languageSwitch}</header>", StringComparison.Ordinal);
+        if (languageSwitch.Length > 0)
+        {
+            html = html.Replace("</header>", $"{languageSwitch}</header>", StringComparison.Ordinal);
+        }
+
         return ReplacePagination(relativePath, html, language, context);
     }
 
@@ -73,7 +77,13 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
 
     private static string BuildLanguageSwitch(string relativePath, SiteTemplateContext context)
     {
-        var (englishPath, japanesePath) = GetLanguagePair(relativePath);
+        var languagePair = GetLanguagePair(relativePath);
+        if (languagePair is null)
+        {
+            return string.Empty;
+        }
+
+        var (englishPath, japanesePath) = languagePair.Value;
         var currentPath = relativePath.Replace('\\', '/');
         var englishUrl = context.GetSitePath(englishPath);
         var japaneseUrl = context.GetSitePath(japanesePath);
@@ -157,7 +167,7 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
 
     private static string CurrentAttribute(bool current) => current ? " aria-current=\"page\"" : string.Empty;
 
-    private static (string English, string Japanese) GetLanguagePair(string relativePath)
+    private static (string English, string Japanese)? GetLanguagePair(string relativePath)
     {
         const string manualEnglish = "posts/user-manual-en.html";
         const string manualJapanese = "posts/user-manual-ja.html";
@@ -168,7 +178,7 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         {
             manualEnglish or manualJapanese => (manualEnglish, manualJapanese),
             privacyEnglish or privacyJapanese => (privacyEnglish, privacyJapanese),
-            _ => (manualEnglish, manualJapanese),
+            _ => null,
         };
     }
 
