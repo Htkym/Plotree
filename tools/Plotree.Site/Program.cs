@@ -21,7 +21,7 @@ var site = new SiteSettings
 
 var customization = new SiteCustomization
 {
-    Template = new DocsSiteTemplate(),
+    Template = new PlotreeDocsTemplate(),
     Theme = new SiteThemeOptions
     {
         BrandPrefix = "plot your story / ",
@@ -34,6 +34,42 @@ var customization = new SiteCustomization
             }
             .docs-header { border-bottom-color: rgba(214, 155, 230, 0.22); }
             .docs-sidebar { border-inline-end-color: rgba(214, 155, 230, 0.22); }
+            .docs-language-switch {
+              display: inline-flex;
+              align-items: center;
+              gap: 0.25rem;
+              margin-inline-start: auto;
+              padding: 0.2rem;
+              border: 1px solid rgba(214, 155, 230, 0.3);
+              border-radius: 999px;
+              background: rgba(214, 155, 230, 0.08);
+            }
+            .docs-language-label {
+              padding-inline: 0.45rem;
+              color: var(--muted);
+              font-size: 0.72rem;
+              letter-spacing: 0.05em;
+              text-transform: uppercase;
+            }
+            .docs-language-switch a {
+              min-inline-size: 2.25rem;
+              padding: 0.25rem 0.45rem;
+              color: var(--muted);
+              border-radius: 999px;
+              font-size: 0.76rem;
+              text-align: center;
+              text-decoration: none;
+            }
+            .docs-language-switch a:hover,
+            .docs-language-switch a:focus-visible,
+            .docs-language-switch a[aria-current="page"] {
+              color: var(--accent-contrast);
+              background: var(--accent);
+            }
+            @media (max-width: 52rem) {
+              .docs-language-label { display: none; }
+              .docs-language-switch { margin-inline-start: auto; }
+            }
             """,
     },
     ExtraPages =
