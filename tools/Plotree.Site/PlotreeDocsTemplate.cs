@@ -41,10 +41,23 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         var languageSwitch = BuildLanguageSwitch(relativePath, context);
         if (languageSwitch.Length > 0)
         {
-            html = html.Replace("</header>", $"{languageSwitch}</header>", StringComparison.Ordinal);
+            html = InsertLanguageSwitch(html, languageSwitch);
         }
 
         return ReplacePagination(relativePath, html, language, context);
+    }
+
+    private static string InsertLanguageSwitch(string html, string languageSwitch)
+    {
+        const string headerActions = "<div class=\"docs-header-actions\">";
+        var actionsStart = html.IndexOf(headerActions, StringComparison.Ordinal);
+        var actionsEnd = actionsStart < 0
+            ? -1
+            : html.IndexOf("</div>", actionsStart, StringComparison.Ordinal);
+
+        return actionsEnd >= 0
+            ? html.Insert(actionsEnd, languageSwitch)
+            : html.Replace("</header>", $"{languageSwitch}</header>", StringComparison.Ordinal);
     }
 
     private static string BuildNavigation(
@@ -115,6 +128,7 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
             .Replace("aria-label=\"Documentation navigation\"", "aria-label=\"ドキュメントナビゲーション\"", StringComparison.Ordinal)
             .Replace(">On this page<", ">この記事の内容<", StringComparison.Ordinal)
             .Replace("aria-label=\"On this page\"", "aria-label=\"この記事の内容\"", StringComparison.Ordinal)
+            .Replace("aria-label=\"Dark mode\"", "aria-label=\"ダークモード\"", StringComparison.Ordinal)
             .Replace("aria-label=\"Document navigation\"", "aria-label=\"文書ナビゲーション\"", StringComparison.Ordinal);
     }
 
