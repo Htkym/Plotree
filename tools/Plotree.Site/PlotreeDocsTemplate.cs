@@ -74,6 +74,7 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
             : "Documentation navigation";
         var manualPath = $"posts/user-manual-{language}.html";
         var privacyPath = $"posts/privacy-policy-{language}.html";
+        var supportPath = $"posts/support-{language}.html";
 
         return $"""
             <aside id="docs-sidebar" class="docs-sidebar" data-docs-sidebar>
@@ -81,7 +82,7 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
             <ul class="docs-nav-list">
             {NavigationItem(labels.Manual, context.GetSitePath(manualPath), currentUrl)}
             {NavigationItem(labels.Privacy, context.GetSitePath(privacyPath), currentUrl)}
-            {NavigationItem(labels.Support, context.GetSitePath("support.html"), currentUrl)}
+            {NavigationItem(labels.Support, context.GetSitePath(supportPath), currentUrl)}
             </ul>
             </nav>
             </aside>
@@ -141,7 +142,8 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         var normalizedPath = relativePath.Replace('\\', '/');
         var isManual = normalizedPath.Equals($"posts/user-manual-{language}.html", StringComparison.OrdinalIgnoreCase);
         var isPrivacy = normalizedPath.Equals($"posts/privacy-policy-{language}.html", StringComparison.OrdinalIgnoreCase);
-        if (!isManual && !isPrivacy)
+        var isSupport = normalizedPath.Equals($"posts/support-{language}.html", StringComparison.OrdinalIgnoreCase);
+        if (!isManual && !isPrivacy && !isSupport)
         {
             return html;
         }
@@ -159,13 +161,19 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         var next = language == "ja" ? "次へ" : "Next";
         var manualLabel = language == "ja" ? "ユーザーマニュアル" : "User manual";
         var privacyLabel = language == "ja" ? "プライバシーポリシー" : "Privacy policy";
+        var supportLabel = language == "ja" ? "サポート" : "Support";
         var body = isManual
             ? $"""
               <span></span>
               <a class="docs-pagination-next" rel="next" href="{context.GetSitePath($"posts/privacy-policy-{language}.html")}"><small>{next}</small><span>{privacyLabel}</span></a>
               """
-            : $"""
+            : isPrivacy
+            ? $"""
               <a class="docs-pagination-previous" rel="prev" href="{context.GetSitePath($"posts/user-manual-{language}.html")}"><small>{previous}</small><span>{manualLabel}</span></a>
+              <a class="docs-pagination-next" rel="next" href="{context.GetSitePath($"posts/support-{language}.html")}"><small>{next}</small><span>{supportLabel}</span></a>
+              """
+            : $"""
+              <a class="docs-pagination-previous" rel="prev" href="{context.GetSitePath($"posts/privacy-policy-{language}.html")}"><small>{previous}</small><span>{privacyLabel}</span></a>
               <span></span>
               """;
         var paginationLabel = language == "ja" ? "文書ナビゲーション" : "Document navigation";
@@ -187,11 +195,14 @@ internal sealed class PlotreeDocsTemplate : ISiteTemplate
         const string manualJapanese = "posts/user-manual-ja.html";
         const string privacyEnglish = "posts/privacy-policy-en.html";
         const string privacyJapanese = "posts/privacy-policy-ja.html";
+        const string supportEnglish = "posts/support-en.html";
+        const string supportJapanese = "posts/support-ja.html";
 
         return relativePath.Replace('\\', '/') switch
         {
             manualEnglish or manualJapanese => (manualEnglish, manualJapanese),
             privacyEnglish or privacyJapanese => (privacyEnglish, privacyJapanese),
+            supportEnglish or supportJapanese => (supportEnglish, supportJapanese),
             _ => null,
         };
     }

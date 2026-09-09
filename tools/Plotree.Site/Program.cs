@@ -72,36 +72,6 @@ var customization = new SiteCustomization
             }
             """,
     },
-    ExtraPages =
-    [
-        new SiteExtraPage
-        {
-            RelativePath = "support.html",
-            Title = "Support / サポート",
-            NavLabel = "Support",
-            BodyHtml = """
-                <section class="hero">
-                  <p class="eyebrow">GitHub Issues</p>
-                  <h1>Support / サポート</h1>
-                  <p>Use GitHub Issues for bug reports, feature requests, and usage questions.</p>
-                  <p><a class="button-link" href="https://github.com/Htkym/Plotree/issues/new/choose">Open a support issue</a></p>
-                </section>
-                <section>
-                  <h2>Before opening an issue</h2>
-                  <ul>
-                    <li>Include the Plotree version or commit, Windows version, and reproduction steps.</li>
-                    <li>Do not attach .plotree files, screenshots, logs, or story text containing private material.</li>
-                    <li>Use the Bug report, Feature request, or Support question form.</li>
-                  </ul>
-                </section>
-                <section>
-                  <h2>サポートについて</h2>
-                  <p>不具合報告、機能要望、使い方の質問は GitHub Issue で受け付けます。</p>
-                  <p>私的な作品内容、.plotree ファイル、スクリーンショット、ログは投稿しないでください。</p>
-                </section>
-                """,
-        },
-    ],
     FaviconSourceDirectory = favicon,
     GenerateLlmsTxt = true,
 };
