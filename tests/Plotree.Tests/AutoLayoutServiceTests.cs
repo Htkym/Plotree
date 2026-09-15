@@ -36,6 +36,7 @@ public sealed class AutoLayoutServiceTests
 
     private static void AssertNoOverlaps(PlotProject project)
     {
+        Assert.IsTrue(project.Nodes.All(n => double.IsFinite(n.X) && double.IsFinite(n.Y)));
         var rects = project.Nodes
             .Where(n => !n.IsPinned)
             .Select(n => (n.Id, Rect: TestGraph.Rect(project, n)))
@@ -68,7 +69,6 @@ public sealed class AutoLayoutServiceTests
         AutoLayoutService.Apply(project);
 
         AssertNoOverlaps(project);
-        Assert.IsTrue(project.Nodes.All(n => double.IsFinite(n.X) && double.IsFinite(n.Y)));
     }
 
     [TestMethod]
@@ -109,7 +109,7 @@ public sealed class AutoLayoutServiceTests
 
         Assert.AreEqual(r1.X, r2.X, 1e-9, "Both roots are layer 0, so both sit in the same column.");
         Assert.AreNotEqual(r1.Y, r2.Y, "Roots in the same layer must occupy separate slots.");
-        Assert.IsTrue(a.X > r1.X, "Successors must be placed in a later layer band.");
+        Assert.IsGreaterThan(r1.X, a.X, "Successors must be placed in a later layer band.");
         AssertNoOverlaps(project);
     }
 
@@ -133,7 +133,7 @@ public sealed class AutoLayoutServiceTests
         var a = project.Nodes.Single(n => n.Id == "a");
 
         Assert.AreEqual(r1.Y, r2.Y, 1e-9);
-        Assert.IsTrue(a.Y > r1.Y);
+        Assert.IsGreaterThan(r1.Y, a.Y);
         AssertNoOverlaps(project);
     }
 
@@ -224,8 +224,9 @@ public sealed class AutoLayoutServiceTests
 
         // free1 and free2 are separated by two slots because the pinned card still holds one.
         var gap = Math.Abs(free1.Y - free2.Y);
-        Assert.IsTrue(
-            gap > 2 * NodeAppearanceFallback.Height,
+        Assert.IsGreaterThan(
+            2 * NodeAppearanceFallback.Height,
+            gap,
             $"The pinned card must still consume a slot between the two free cards, but the gap was {gap}.");
     }
 
@@ -246,10 +247,11 @@ public sealed class AutoLayoutServiceTests
 
         // Both are roots, so they stack along Y within layer 0 separated by the clamped height.
         var gap = Math.Abs(huge.Y - small.Y);
-        Assert.IsTrue(
-            gap >= NodeAppearanceFallback.MaxHeight,
+        Assert.IsGreaterThanOrEqualTo(
+            NodeAppearanceFallback.MaxHeight,
+            gap,
             $"Spacing must use the clamped card height, but the gap was {gap}.");
-        Assert.IsTrue(gap < NodeAppearanceFallback.MaxHeight + 1_000, "Spacing must not use the unclamped 10000 height.");
+        Assert.IsLessThan(NodeAppearanceFallback.MaxHeight + 1_000, gap, "Spacing must not use the unclamped 10000 height.");
         AssertNoOverlaps(project);
     }
 

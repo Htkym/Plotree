@@ -41,4 +41,14 @@
     <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
+  <!-- MSTest satellite assemblies use .NET resource lookup, not the WinUI PRI index. -->
+  <Target Name="KeepMSTestResourcesOutOfPri" AfterTargets="CopyMSTestV2Resources">
+    <ItemGroup>
+      <None Include="@(Content)"
+            Condition="'%(Content.Filename)' == 'MSTestAdapter.PlatformServices.resources'" />
+      <Content Remove="@(Content)"
+               Condition="'%(Content.Filename)' == 'MSTestAdapter.PlatformServices.resources'" />
+    </ItemGroup>
+  </Target>
+
 </Project>

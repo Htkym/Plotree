@@ -59,8 +59,8 @@ public sealed class SvgExportServiceTests
 
         var document = ParseSvg(svg);
         var viewBox = ParseViewBox(document);
-        Assert.IsTrue(viewBox.Width > 0);
-        Assert.IsTrue(viewBox.Height > 0);
+        Assert.IsGreaterThan(0, viewBox.Width);
+        Assert.IsGreaterThan(0, viewBox.Height);
     }
 
     [TestMethod]
@@ -142,10 +142,10 @@ public sealed class SvgExportServiceTests
         foreach (var node in project.Nodes)
         {
             var rect = TestGraph.Rect(project, node);
-            Assert.IsTrue(rect.X >= viewBox.MinX, $"Node '{node.Id}' starts left of the view box.");
-            Assert.IsTrue(rect.Y >= viewBox.MinY, $"Node '{node.Id}' starts above the view box.");
-            Assert.IsTrue(rect.X + rect.Width <= viewBox.MinX + viewBox.Width, $"Node '{node.Id}' extends past the right edge.");
-            Assert.IsTrue(rect.Y + rect.Height <= viewBox.MinY + viewBox.Height, $"Node '{node.Id}' extends past the bottom edge.");
+            Assert.IsGreaterThanOrEqualTo(viewBox.MinX, rect.X, $"Node '{node.Id}' starts left of the view box.");
+            Assert.IsGreaterThanOrEqualTo(viewBox.MinY, rect.Y, $"Node '{node.Id}' starts above the view box.");
+            Assert.IsLessThanOrEqualTo(viewBox.MinX + viewBox.Width, rect.X + rect.Width, $"Node '{node.Id}' extends past the right edge.");
+            Assert.IsLessThanOrEqualTo(viewBox.MinY + viewBox.Height, rect.Y + rect.Height, $"Node '{node.Id}' extends past the bottom edge.");
         }
     }
 
@@ -201,7 +201,7 @@ public sealed class SvgExportServiceTests
 
         var document = ParseSvg(SvgExportService.Export(project));
 
-        Assert.IsTrue(ParseViewBox(document).Width > 500_000);
+        Assert.IsGreaterThan(500_000, ParseViewBox(document).Width);
     }
 
     [TestMethod]
@@ -340,7 +340,7 @@ public sealed class SvgExportServiceTests
             .Where(rect => rect.Attribute("width")?.Value == "4")
             .ToArray();
 
-        Assert.AreEqual(2, accents.Length);
+        Assert.HasCount(2, accents);
         CollectionAssert.AreEqual(
             new[] { "#FF0000", "#0000FF" },
             accents.Select(rect => rect.Attribute("fill")!.Value).ToArray());
@@ -366,8 +366,8 @@ public sealed class SvgExportServiceTests
         var tallDocument = ParseSvg(SvgExportService.Export(project));
         var tallLines = BodyLines(tallDocument, "a");
 
-        Assert.IsTrue(tallLines > shortLines, $"Expected a taller card to show more body lines ({shortLines} vs {tallLines}).");
-        Assert.IsTrue(tallLines > 3, "Full mode must no longer be capped at three body lines.");
+        Assert.IsGreaterThan(shortLines, tallLines, $"Expected a taller card to show more body lines ({shortLines} vs {tallLines}).");
+        Assert.IsGreaterThan(3, tallLines, "Full mode must no longer be capped at three body lines.");
     }
 
     private static int BodyLines(XDocument document, string nodeId)
@@ -386,7 +386,8 @@ public sealed class SvgExportServiceTests
             .Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Select(value => double.Parse(value, CultureInfo.InvariantCulture))
             .ToArray();
-        Assert.AreEqual(4, parts.Length);
+        Assert.HasCount(4, parts);
+        Assert.IsTrue(parts.All(double.IsFinite), "View box coordinates and dimensions must be finite.");
         return (parts[0], parts[1], parts[2], parts[3]);
     }
 }

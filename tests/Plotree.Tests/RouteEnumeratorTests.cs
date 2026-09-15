@@ -14,10 +14,10 @@ public sealed class RouteEnumeratorTests
     {
         var analysis = RouteEnumerator.Analyze(new PlotProject());
 
-        Assert.AreEqual(0, analysis.Roots.Count);
-        Assert.AreEqual(0, analysis.Routes.Count);
-        Assert.AreEqual(0, analysis.DeadEnds.Count);
-        Assert.AreEqual(0, analysis.Unreachable.Count);
+        Assert.IsEmpty(analysis.Roots);
+        Assert.IsEmpty(analysis.Routes);
+        Assert.IsEmpty(analysis.DeadEnds);
+        Assert.IsEmpty(analysis.Unreachable);
         Assert.IsFalse(analysis.IsTruncated);
         Assert.IsTrue(analysis.HasNoEndings);
     }
@@ -39,8 +39,8 @@ public sealed class RouteEnumeratorTests
 
         CollectionAssert.AreEqual(new[] { "r1", "r2" }, analysis.Roots.Select(n => n.Id).ToList());
         CollectionAssert.AreEquivalent(new[] { "r1>e1", "r2>e2" }, TestGraph.Paths(analysis));
-        Assert.AreEqual(0, analysis.Unreachable.Count);
-        Assert.AreEqual(0, analysis.DeadEnds.Count);
+        Assert.IsEmpty(analysis.Unreachable);
+        Assert.IsEmpty(analysis.DeadEnds);
     }
 
     [TestMethod]
@@ -55,7 +55,7 @@ public sealed class RouteEnumeratorTests
 
         var analysis = RouteEnumerator.Analyze(project);
 
-        Assert.AreEqual(1, analysis.Roots.Count);
+        Assert.HasCount(1, analysis.Roots);
         Assert.AreEqual(NodeType.Choice, analysis.Roots[0].Type);
         CollectionAssert.AreEqual(new[] { "c>e" }, TestGraph.Paths(analysis));
     }
@@ -106,7 +106,7 @@ public sealed class RouteEnumeratorTests
 
         CollectionAssert.AreEqual(new[] { "r>a>b>c>end" }, TestGraph.Paths(analysis));
         Assert.IsFalse(analysis.IsTruncated);
-        Assert.AreEqual(0, analysis.Unreachable.Count);
+        Assert.IsEmpty(analysis.Unreachable);
     }
 
     [TestMethod]
@@ -124,11 +124,11 @@ public sealed class RouteEnumeratorTests
 
         var analysis = RouteEnumerator.Analyze(project);
 
-        Assert.AreEqual(1, analysis.Roots.Count);
+        Assert.HasCount(1, analysis.Roots);
         Assert.AreEqual("a", analysis.Roots[0].Id, "With no indegree-zero node the first node in document order is used.");
         Assert.IsTrue(analysis.HasNoEndings);
         CollectionAssert.AreEqual(new[] { "a>b>c" }, TestGraph.Paths(analysis));
-        Assert.AreEqual(0, analysis.Unreachable.Count);
+        Assert.IsEmpty(analysis.Unreachable);
     }
 
     [TestMethod]
@@ -144,7 +144,7 @@ public sealed class RouteEnumeratorTests
 
         var analysis = RouteEnumerator.Analyze(project);
 
-        Assert.AreEqual(1, analysis.Roots.Count);
+        Assert.HasCount(1, analysis.Roots);
         Assert.AreEqual("a", analysis.Roots[0].Id, "A self-loop must not give a node an indegree.");
         CollectionAssert.AreEqual(new[] { "a>e" }, TestGraph.Paths(analysis));
     }
@@ -244,7 +244,7 @@ public sealed class RouteEnumeratorTests
 
         var analysis = RouteEnumerator.Analyze(TestGraph.Project(nodes, [.. edges]));
 
-        Assert.AreEqual(RouteEnumerator.MaxRoutes, analysis.Routes.Count);
+        Assert.HasCount(RouteEnumerator.MaxRoutes, analysis.Routes);
         Assert.IsTrue(analysis.IsTruncated);
     }
 
@@ -264,7 +264,7 @@ public sealed class RouteEnumeratorTests
 
         var analysis = RouteEnumerator.Analyze(project);
 
-        Assert.IsTrue(analysis.Routes.Count <= RouteEnumerator.MaxRoutes);
-        Assert.AreEqual(1, analysis.Roots.Count);
+        Assert.IsLessThanOrEqualTo(RouteEnumerator.MaxRoutes, analysis.Routes.Count);
+        Assert.HasCount(1, analysis.Roots);
     }
 }

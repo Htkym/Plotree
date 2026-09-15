@@ -50,11 +50,11 @@ public sealed class PlotExporterTests
         var bodyIndices = IndicesOf(lines, $"**{BodyLabel}**");
         var memoIndices = IndicesOf(lines, $"**{MemoLabel}**");
 
-        Assert.AreEqual(2, bodyIndices.Count, "Both nodes on the route need a labelled Body section.");
-        Assert.AreEqual(2, memoIndices.Count, "Both nodes on the route need a labelled Memo section.");
+        Assert.HasCount(2, bodyIndices, "Both nodes on the route need a labelled Body section.");
+        Assert.HasCount(2, memoIndices, "Both nodes on the route need a labelled Memo section.");
         for (var i = 0; i < 2; i++)
         {
-            Assert.IsTrue(bodyIndices[i] < memoIndices[i], "Body must be written before Memo.");
+            Assert.IsLessThan(memoIndices[i], bodyIndices[i], "Body must be written before Memo.");
         }
 
         Assert.AreEqual("Alpha body", lines[bodyIndices[0] + 1]);
@@ -69,8 +69,8 @@ public sealed class PlotExporterTests
         var bodyIndices = IndicesOf(lines, $"{BodyLabel}:");
         var memoIndices = IndicesOf(lines, $"{MemoLabel}:");
 
-        Assert.AreEqual(2, bodyIndices.Count);
-        Assert.AreEqual(2, memoIndices.Count);
+        Assert.HasCount(2, bodyIndices);
+        Assert.HasCount(2, memoIndices);
         Assert.AreEqual("Alpha body", lines[bodyIndices[0] + 1]);
         Assert.AreEqual("Alpha memo", lines[memoIndices[0] + 1]);
         Assert.IsFalse(
@@ -236,7 +236,7 @@ public sealed class PlotExporterTests
 
         Assert.IsTrue(markdown.Contains("### First opening", StringComparison.Ordinal));
         Assert.IsTrue(markdown.Contains("### Second opening", StringComparison.Ordinal));
-        Assert.AreEqual(4, IndicesOf(Lines(markdown), $"**{BodyLabel}**").Count);
+        Assert.HasCount(4, IndicesOf(Lines(markdown), $"**{BodyLabel}**"));
     }
 
     [TestMethod]

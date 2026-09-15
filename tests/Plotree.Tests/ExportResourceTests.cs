@@ -51,7 +51,7 @@ public sealed class ExportResourceTests
         var resources = Load(language);
 
         var missing = RequiredExportKeys.Where(key => !resources.ContainsKey(key)).ToList();
-        Assert.AreEqual(0, missing.Count, $"{language} is missing: {string.Join(", ", missing)}");
+        Assert.IsEmpty(missing, $"{language} is missing: {string.Join(", ", missing)}");
         foreach (var key in RequiredExportKeys)
         {
             Assert.IsFalse(string.IsNullOrWhiteSpace(resources[key]), $"{language}/{key} is blank.");
@@ -103,7 +103,7 @@ public sealed class ExportResourceTests
         var missingInJapanese = english.Keys.Except(japanese.Keys, StringComparer.Ordinal).Order().ToList();
         var missingInEnglish = japanese.Keys.Except(english.Keys, StringComparer.Ordinal).Order().ToList();
 
-        Assert.AreEqual(0, missingInJapanese.Count, $"ja-JP is missing: {string.Join(", ", missingInJapanese)}");
-        Assert.AreEqual(0, missingInEnglish.Count, $"en-US is missing: {string.Join(", ", missingInEnglish)}");
+        Assert.IsEmpty(missingInJapanese, $"ja-JP is missing: {string.Join(", ", missingInJapanese)}");
+        Assert.IsEmpty(missingInEnglish, $"en-US is missing: {string.Join(", ", missingInEnglish)}");
     }
 }

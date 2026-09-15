@@ -87,23 +87,23 @@ public sealed class ProjectSerializerTests
         Assert.AreEqual("Red", first.ColorTag);
         CollectionAssert.AreEqual(new[] { "Red" }, first.TagNames);
         Assert.IsNull(first.LegacyColorTag, "The legacy scalar member must be consumed by migration.");
-        Assert.AreEqual(1, first.CharacterIds.Count);
+        Assert.HasCount(1, first.CharacterIds);
         Assert.AreEqual("c1", first.CharacterIds[0]);
         Assert.AreEqual(12.5, first.X);
         Assert.AreEqual(-30d, first.Y);
         Assert.IsTrue(first.IsPinned);
         Assert.IsNull(first.Appearance, "v1 nodes carry no appearance; it must stay null and fall back.");
 
-        Assert.AreEqual(3, project.Edges.Count);
+        Assert.HasCount(3, project.Edges);
         Assert.AreEqual("n1", project.Edges[0].FromId);
         Assert.AreEqual("n2", project.Edges[0].ToId);
         Assert.AreEqual("Go on", project.Edges[0].Label);
         Assert.IsNull(project.Edges[0].FromSide, "v1 edges carry no port side; it must stay null.");
         Assert.IsNull(project.Edges[0].ToSide);
 
-        Assert.AreEqual(1, project.Characters.Count);
+        Assert.HasCount(1, project.Characters);
         Assert.AreEqual("Alice", project.Characters[0].Name);
-        Assert.AreEqual(1, project.Tags.Count);
+        Assert.HasCount(1, project.Tags);
         Assert.AreEqual("Red", project.Tags[0].Name);
         Assert.AreEqual("#FF0000", project.Tags[0].Color);
     }
@@ -271,7 +271,7 @@ public sealed class ProjectSerializerTests
 
         Assert.AreEqual("Alice", restored.Characters[0].Name);
         CollectionAssert.AreEqual(new[] { "g1", "g2" }, restored.Characters[0].GroupIds);
-        Assert.AreEqual(2, restored.Groups.Count);
+        Assert.HasCount(2, restored.Groups);
         Assert.AreEqual("Investigators", restored.Groups[0].Name);
         Assert.AreEqual("Family", restored.Groups[1].Name);
         Assert.AreEqual("#FF0000", restored.Tags[0].Color);
@@ -317,7 +317,7 @@ public sealed class ProjectSerializerTests
         AutoLayoutService.Apply(project);
         var analysis = RouteEnumerator.Analyze(project);
 
-        Assert.AreEqual(2, analysis.Roots.Count, "n1 and the disconnected n5 both have indegree zero.");
+        Assert.HasCount(2, analysis.Roots, "n1 and the disconnected n5 both have indegree zero.");
         Assert.AreEqual("n1", analysis.Roots[0].Id);
         Assert.AreEqual("n5", analysis.Roots[1].Id);
         CollectionAssert.AreEqual(new[] { "n1>n2>n3>n4" }, TestGraph.Paths(analysis));
@@ -344,7 +344,7 @@ public sealed class ProjectSerializerTests
         CollectionAssert.AreEqual(new[] { "Red" }, project.Nodes[0].TagNames);
         Assert.AreEqual("Red", project.Nodes[0].ColorTag);
         Assert.IsNull(project.Nodes[0].LegacyColorTag);
-        Assert.AreEqual(0, project.Groups.Count, "Version 2 files have no groups.");
+        Assert.IsEmpty(project.Groups, "Version 2 files have no groups.");
 
         using var document = JsonDocument.Parse(ProjectSerializer.Serialize(project));
         var node = document.RootElement.GetProperty("nodes")[0];
@@ -381,11 +381,11 @@ public sealed class ProjectSerializerTests
 
         Assert.AreEqual(ProjectSerializer.CurrentVersion, project.Version);
         CollectionAssert.AreEqual(new[] { "Legacy" }, project.Nodes[0].TagNames);
-        Assert.AreEqual(0, project.Nodes[0].CharacterIds.Count);
-        Assert.AreEqual(0, project.Edges.Count);
-        Assert.AreEqual(0, project.Groups.Count);
-        Assert.AreEqual(0, project.Tags.Count);
-        Assert.AreEqual(0, project.Characters[0].GroupIds.Count);
+        Assert.IsEmpty(project.Nodes[0].CharacterIds);
+        Assert.IsEmpty(project.Edges);
+        Assert.IsEmpty(project.Groups);
+        Assert.IsEmpty(project.Tags);
+        Assert.IsEmpty(project.Characters[0].GroupIds);
 
         using var document = JsonDocument.Parse(ProjectSerializer.Serialize(project));
         var node = document.RootElement.GetProperty("nodes")[0];

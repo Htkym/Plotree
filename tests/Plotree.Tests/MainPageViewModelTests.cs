@@ -254,7 +254,7 @@ public sealed class MainPageViewModelTests
         viewModel.AddCharacter("Bo");
 
         var sections = viewModel.CharacterAssignmentGroups;
-        Assert.AreEqual(3, sections.Count);
+        Assert.HasCount(3, sections);
         CollectionAssert.AreEqual(
             new[] { "Leads", "Investigators" },
             sections.Take(2).Select(section => section.Name).ToArray());
@@ -298,22 +298,22 @@ public sealed class MainPageViewModelTests
 
         viewModel.UndoCommand.Execute(null);
 
-        Assert.AreEqual(2, viewModel.Nodes.Count);
-        Assert.AreEqual(0, viewModel.Edges.Count);
+        Assert.HasCount(2, viewModel.Nodes);
+        Assert.IsEmpty(viewModel.Edges);
         CollectionAssert.AreEquivalent(
             new[] { firstId, secondId },
             viewModel.Nodes.Select(node => node.Model.Id).ToArray());
 
         viewModel.RedoCommand.Execute(null);
 
-        Assert.AreEqual(2, viewModel.Nodes.Count);
-        Assert.AreEqual(1, viewModel.Edges.Count);
+        Assert.HasCount(2, viewModel.Nodes);
+        Assert.HasCount(1, viewModel.Edges);
         var restored = viewModel.Edges.Single();
         Assert.AreEqual(edgeId, restored.Model.Id);
         Assert.AreEqual(firstId, restored.From.Model.Id);
         Assert.AreEqual(secondId, restored.To.Model.Id);
-        Assert.IsTrue(viewModel.Nodes.Contains(restored.From));
-        Assert.IsTrue(viewModel.Nodes.Contains(restored.To));
+        Assert.Contains(restored.From, viewModel.Nodes);
+        Assert.Contains(restored.To, viewModel.Nodes);
     }
 
     [TestMethod]
@@ -395,8 +395,8 @@ public sealed class MainPageViewModelTests
         viewModel.CopyCommand.Execute(null);
         viewModel.PasteCommand.Execute(null);
 
-        Assert.AreEqual(5, viewModel.Project.Nodes.Count);
-        Assert.AreEqual(4, viewModel.Project.Edges.Count);
+        Assert.HasCount(5, viewModel.Project.Nodes);
+        Assert.HasCount(4, viewModel.Project.Edges);
         Assert.AreNotEqual(first.Model.Id, viewModel.SelectedNodes[0].Model.Id);
         Assert.AreNotEqual(second.Model.Id, viewModel.SelectedNodes[1].Model.Id);
         Assert.IsTrue(viewModel.Project.Edges.Any(edge => edge.Id == internalEdge.Model.Id));
@@ -478,13 +478,13 @@ public sealed class MainPageViewModelTests
 
         viewModel.UndoCommand.Execute(null);
         Assert.AreEqual(dirtyBeforePaste, viewModel.IsDirty);
-        Assert.AreEqual(2, viewModel.Project.Nodes.Count);
-        Assert.AreEqual(1, viewModel.Project.Edges.Count);
+        Assert.HasCount(2, viewModel.Project.Nodes);
+        Assert.HasCount(1, viewModel.Project.Edges);
 
         viewModel.RedoCommand.Execute(null);
         Assert.IsTrue(viewModel.IsDirty);
-        Assert.AreEqual(4, viewModel.Project.Nodes.Count);
-        Assert.AreEqual(2, viewModel.Project.Edges.Count);
+        Assert.HasCount(4, viewModel.Project.Nodes);
+        Assert.HasCount(2, viewModel.Project.Edges);
     }
 
     [TestMethod]
@@ -499,7 +499,7 @@ public sealed class MainPageViewModelTests
 
         Assert.IsTrue(viewModel.CanPaste);
         viewModel.PasteCommand.Execute(null);
-        Assert.AreEqual(1, viewModel.Project.Nodes.Count);
+        Assert.HasCount(1, viewModel.Project.Nodes);
         Assert.AreEqual(source.Model.Title, viewModel.Project.Nodes.Single().Title);
     }
 
@@ -586,10 +586,10 @@ public sealed class MainPageViewModelTests
         viewModel.PasteCommand.Execute(null);
         viewModel.PasteCommand.Execute(null);
 
-        Assert.AreEqual(1, viewModel.Project.Tags.Count);
+        Assert.HasCount(1, viewModel.Project.Tags);
         Assert.AreEqual("#111111", viewModel.Project.Tags.Single().Color);
-        Assert.AreEqual(1, viewModel.Project.Groups.Count);
-        Assert.AreEqual(1, viewModel.Project.Characters.Count);
+        Assert.HasCount(1, viewModel.Project.Groups);
+        Assert.HasCount(1, viewModel.Project.Characters);
         Assert.AreEqual("#222222", viewModel.Project.Characters.Single().Color);
         Assert.IsTrue(viewModel.Project.Nodes.All(node =>
             node.TagNames.SequenceEqual(new[] { destinationTag.Name })
