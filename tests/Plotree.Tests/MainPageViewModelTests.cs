@@ -1,4 +1,5 @@
 using Plotree.Models;
+using Plotree.Services;
 using Plotree.ViewModels;
 
 namespace Plotree.Tests;
@@ -6,6 +7,78 @@ namespace Plotree.Tests;
 [TestClass]
 public sealed class MainPageViewModelTests
 {
+    [TestMethod]
+    public void Relationships_ValidateEditAndDeleteWithCharacterInOneHistoryStep()
+    {
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
+        vm.AddCharacter("B");
+        var a = vm.Project.Characters[0].Id;
+        var b = vm.Project.Characters[1].Id;
+        Assert.AreEqual("Relationship_SelfError", vm.ValidateRelationship(null, a, a, "self"));
+        Assert.IsNull(vm.ValidateRelationship(null, a, b, " "));
+        var relationship = vm.SaveRelationship(null, a, b, " ")!;
+        Assert.AreEqual(Loc.Get("Relationship_DefaultLabel"), relationship.Label);
+        vm.UndoCommand.Execute(null);
+        Assert.IsEmpty(vm.Project.Relationships);
+        vm.RedoCommand.Execute(null);
+        Assert.AreEqual(Loc.Get("Relationship_DefaultLabel"), vm.Project.Relationships.Single().Label);
+        Assert.AreEqual("Relationship_DuplicateError", vm.ValidateRelationship(null, b, a, "rivals"));
+        Assert.IsNull(vm.SaveRelationship(null, b, a, "rivals"));
+        Assert.AreEqual("rivals", vm.SaveRelationship(relationship.Id, b, a, "rivals")!.Label);
+        Assert.HasCount(1, vm.Project.Relationships);
+
+        vm.DeleteCharacter(vm.Characters.Single(c => c.Id == a));
+        Assert.IsEmpty(vm.Project.Relationships);
+        vm.UndoCommand.Execute(null);
+        Assert.HasCount(2, vm.Project.Characters);
+        Assert.HasCount(1, vm.Project.Relationships);
+    }
+
+    [TestMethod]
+    public void GraphGroup_CreatesClusterMembershipAndRoundTrips()
+    {
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
+        vm.AddCharacter("B");
+        var ids = vm.Project.Characters.Select(character => character.Id).ToArray();
+
+        var group = vm.CreateGraphGroup("Team", "#336699", ids);
+
+        Assert.IsNotNull(group);
+        Assert.AreEqual("#336699", group.BackgroundColor);
+        Assert.IsTrue(vm.Project.Characters.All(character => character.GraphGroupId == group.Id));
+        Assert.IsTrue(vm.Project.Characters.All(character => character.GroupIds.Contains(group.Id)));
+        Assert.AreNotEqual(vm.Project.Characters[0].GraphX, vm.Project.Characters[1].GraphX);
+
+        var restored = ProjectSerializer.Deserialize(ProjectSerializer.Serialize(vm.Project));
+        Assert.AreEqual("#336699", restored.Groups.Single().BackgroundColor);
+        Assert.IsTrue(restored.Characters.All(character => character.GraphGroupId == group.Id));
+
+        vm.UndoCommand.Execute(null);
+        Assert.IsEmpty(vm.Project.Groups);
+        vm.RedoCommand.Execute(null);
+        Assert.AreEqual(group.Id, vm.Project.Groups.Single().Id);
+    }
+
+    [TestMethod]
+    public void CharacterMove_IsOneUndoableDirtyChange()
+    {
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
+        var id = vm.Project.Characters.Single().Id;
+        var originalX = vm.Project.Characters.Single().GraphX;
+        vm.BeginCharacterMove();
+        vm.MoveCharacter(id, 30, 40);
+        vm.MoveCharacter(id, 90, 100);
+        vm.EndCharacterMove();
+        Assert.IsTrue(vm.IsDirty);
+        vm.UndoCommand.Execute(null);
+        Assert.AreEqual(originalX, vm.Project.Characters.Single().GraphX);
+        vm.RedoCommand.Execute(null);
+        Assert.AreEqual(90d, vm.Project.Characters.Single().GraphX);
+    }
+
     [TestMethod]
     public void WindowTitle_UsesFileNameInsteadOfProjectTitle()
     {

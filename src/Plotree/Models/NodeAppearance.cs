@@ -35,10 +35,13 @@ public class NodeAppearance
     /// <summary>Card display mode, or null.</summary>
     public NodeDisplayMode? DisplayMode { get; set; }
 
+    /// <summary>Whether assigned characters appear on the card; null inherits the document default.</summary>
+    public bool? ShowCharacters { get; set; }
+
     /// <summary>True when nothing is specified here (never persisted).</summary>
     [JsonIgnore]
     public bool IsEmpty =>
-        HeaderColor is null && Width is null && Height is null && DisplayMode is null;
+        HeaderColor is null && Width is null && Height is null && DisplayMode is null && ShowCharacters is null;
 
     public NodeAppearance Clone() => new()
     {
@@ -46,6 +49,7 @@ public class NodeAppearance
         Width = Width,
         Height = Height,
         DisplayMode = DisplayMode,
+        ShowCharacters = ShowCharacters,
     };
 }
 

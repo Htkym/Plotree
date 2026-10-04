@@ -11,7 +11,8 @@ public readonly record struct ResolvedAppearance(
     string? HeaderColor,
     double Width,
     double Height,
-    NodeDisplayMode DisplayMode);
+    NodeDisplayMode DisplayMode,
+    bool ShowCharacters = false);
 
 /// <summary>
 /// Resolves node appearance through the version 2 chain:
@@ -38,7 +39,8 @@ public static class AppearanceResolver
                 Pick(overrides?.Height, defaults?.Height) ?? NodeAppearanceFallback.Height,
                 NodeAppearanceFallback.MinHeight,
                 NodeAppearanceFallback.MaxHeight),
-            Pick(overrides?.DisplayMode, defaults?.DisplayMode) ?? NodeAppearanceFallback.DisplayMode);
+            Pick(overrides?.DisplayMode, defaults?.DisplayMode) ?? NodeAppearanceFallback.DisplayMode,
+            Pick(overrides?.ShowCharacters, defaults?.ShowCharacters) ?? false);
     }
 
     /// <summary>Resolves the defaults for a node type, without any per-node override.</summary>

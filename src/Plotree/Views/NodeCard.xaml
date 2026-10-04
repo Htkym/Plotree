@@ -56,6 +56,7 @@
                 <Grid Grid.Column="1" Grid.Row="1" Margin="8,4,8,4">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
                     </Grid.RowDefinitions>
                     <TextBlock
@@ -63,14 +64,19 @@
                         Style="{StaticResource BodyStrongTextBlockStyle}"
                         TextWrapping="Wrap"
                         TextTrimming="CharacterEllipsis"
-                        MaxLines="{x:Bind TitleMaxLines(ViewModel.EffectiveDisplayMode), Mode=OneWay}" />
+                        MaxLines="{x:Bind TitleMaxLines(ViewModel.EffectiveDisplayMode, ViewModel.EffectiveShowCharacters, ViewModel.CharacterNames, ViewModel.EffectiveHeight), Mode=OneWay}" />
+                    <TextBlock Grid.Row="1"
+                        Text="{x:Bind ViewModel.CharacterNames, Mode=OneWay}"
+                        Style="{StaticResource CaptionTextBlockStyle}"
+                        TextTrimming="CharacterEllipsis" MaxLines="1" LineHeight="16"
+                        Visibility="{x:Bind CharactersVisibility(ViewModel.EffectiveShowCharacters, ViewModel.CharacterNames), Mode=OneWay}" />
                     <TextBlock
-                        Grid.Row="1"
+                        Grid.Row="2"
                         Text="{x:Bind ViewModel.Body, Mode=OneWay}"
                         Style="{StaticResource CaptionTextBlockStyle}"
                         TextWrapping="Wrap"
                         TextTrimming="CharacterEllipsis"
-                        MaxLines="{x:Bind BodyMaxLines(ViewModel.EffectiveDisplayMode, ViewModel.DisplayTitle, ViewModel.EffectiveWidth, ViewModel.EffectiveHeight), Mode=OneWay}"
+                        MaxLines="{x:Bind BodyMaxLines(ViewModel.EffectiveDisplayMode, ViewModel.DisplayTitle, ViewModel.EffectiveWidth, ViewModel.EffectiveHeight, ViewModel.EffectiveShowCharacters, ViewModel.CharacterNames), Mode=OneWay}"
                         Visibility="{x:Bind BodyVisibility(ViewModel.EffectiveDisplayMode), Mode=OneWay}"
                         Margin="0,2,0,0" />
                 </Grid>

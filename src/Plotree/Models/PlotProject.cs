@@ -11,7 +11,7 @@ public enum LayoutDirection
 public class PlotProject
 {
     /// <summary>File format version, used for migrations. Kept in sync with ProjectSerializer.CurrentVersion.</summary>
-    public int Version { get; set; } = 3;
+    public int Version { get; set; } = 4;
 
     public string Title { get; set; } = "Untitled";
 
@@ -22,6 +22,8 @@ public class PlotProject
     public List<PlotEdge> Edges { get; set; } = [];
 
     public List<Character> Characters { get; set; } = [];
+
+    public List<CharacterRelationship> Relationships { get; set; } = [];
 
     public List<CharacterGroup> Groups { get; set; } = [];
 
