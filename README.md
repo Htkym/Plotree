@@ -35,29 +35,29 @@ See [Support](SUPPORT.md) and the [privacy policy](https://htkym.github.io/Plotr
 - Navigate large graphs with automatic horizontal and vertical scroll bars, canvas panning, mouse-wheel scrolling, and zoom controls.
 - Combine automatic layered layout with manually pinned nodes.
 - Track node body text, writing memos, color tags, characters, and character groups.
+- Map character relationships in a dedicated canvas, with named relationship lines, editable label colors, and character images.
+- Share character group memberships between Plot and the character graph, and show or hide each group background independently.
+- Choose whether story cards display their assigned characters, with defaults for each node type and per-node overrides.
 - Export the graph as PNG or SVG, or export story routes as Markdown or plain text.
 - Switch the interface between English and Japanese from **Settings > Language**.
 
 ![Editing a selected story node](site/images/screenshots/02-node-details-en.png)
 
+## Character graph and groups
+
+Open **Character graph** to arrange characters and connect them with relationship lines. New lines start with the label “Relationship name”. Select a line to edit its relationship name and label colors in **Details**. Selected characters are marked with a thick white ring, and relationship lines stay selectable where they overlap group backgrounds. PNG and JPEG character images are saved with the project.
+
+A character can belong to several groups. Memberships are shared between **Plot** and **Character graph**, so groups assigned in Plot also appear as backgrounds in the character graph. Changing groups or background colors does not move characters. Nearby members of a group share one background, and distant members get separate backgrounds. Overlapping backgrounds and their names are offset like stairs, and the selected group is drawn in front. Selecting a background shows the group name and members in **Details** and opens editing commands next to it. Use **Group visibility**, next to **Groups**, to show or hide backgrounds.
+
+In Plot, the character manager shows the group list to the right of the character list, and the assignment list can be expanded or collapsed by group. **Details** lists assigned characters one per line with their groups, and you can select the text to copy it. Whether cards show assigned characters is set separately from the title/body display mode, with defaults for each node type and per-node overrides. Characters are hidden on cards by default, and PNG and SVG exports follow the same setting.
+
 ## Requirements
 
 - Windows 10 version 1809 or later, or Windows 11
-- .NET 10 SDK for building from source
 
-## Build
+## Notes
 
-```powershell
-dotnet build .\Plotree.slnx -p:Platform=x64
-```
-
-Use `winapp run` or the WinUI BuildAndRun workflow to launch a development build rather than starting the executable directly.
-
-After creating an MSIX bundle and its `.cer` file, build the GitHub direct installer with:
-
-```powershell
-.\scripts\New-DirectInstaller.ps1 -PackageDirectory .\src\Plotree\AppPackages\<version>
-```
+- Projects saved with Plotree 1.0.5 cannot be opened in version 1.0.4 or earlier.
 
 ## License
 

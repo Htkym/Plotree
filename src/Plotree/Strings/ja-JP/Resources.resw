@@ -248,4 +248,61 @@
   <data name="Export_NoEndings" xml:space="preserve"><value>エンディングノードがまだないため、ルートの代わりにすべての経路をエクスポートします。</value></data>
   <data name="Export_NoRoutes" xml:space="preserve"><value>起点ノードからのルートが見つかりませんでした。</value></data>
   <data name="Export_Truncated" xml:space="preserve"><value>ルート数が {0} 件を超えたため打ち切りました。</value></data>
+  <data name="NavPlot.Content" xml:space="preserve"><value>プロット</value></data>
+  <data name="NavRelationships.Content" xml:space="preserve"><value>人物相関図</value></data>
+  <data name="Relationship_Graph" xml:space="preserve"><value>人物相関図</value></data>
+  <data name="Relationship_Add" xml:space="preserve"><value>関係を追加</value></data>
+  <data name="Relationship_Edit" xml:space="preserve"><value>関係を編集</value></data>
+  <data name="Relationship_Details" xml:space="preserve"><value>詳細</value></data>
+  <data name="Relationship_List" xml:space="preserve"><value>関係一覧</value></data>
+  <data name="Relationship_Label" xml:space="preserve"><value>関係名</value></data>
+  <data name="Relationship_First" xml:space="preserve"><value>1人目</value></data>
+  <data name="Relationship_Second" xml:space="preserve"><value>2人目</value></data>
+  <data name="Relationship_Groups" xml:space="preserve"><value>所属グループ: {0}</value></data>
+  <data name="Relationship_Item" xml:space="preserve"><value>{0} ― {1}: {2}</value></data>
+  <data name="Relationship_Pair" xml:space="preserve"><value>{0} ― {1}</value></data>
+  <data name="Relationship_EmptyCharacters" xml:space="preserve"><value>プロット画面で人物を追加すると、相関図に表示されます。</value></data>
+  <data name="Relationship_OneCharacter" xml:space="preserve"><value>関係を作るには、もう1人追加してください。</value></data>
+  <data name="Relationship_EmptyRelationships" xml:space="preserve"><value>関係はまだありません。</value></data>
+  <data name="Relationship_SelectHint" xml:space="preserve"><value>人物または関係を選択してください。</value></data>
+  <data name="Relationship_SelectTwo" xml:space="preserve"><value>人物を2人選んでください。</value></data>
+  <data name="Relationship_SelfError" xml:space="preserve"><value>同じ人物同士は結べません。</value></data>
+  <data name="Relationship_DuplicateError" xml:space="preserve"><value>この2人の関係はすでにあります。</value></data>
+  <data name="Relationship_DeleteTitle" xml:space="preserve"><value>関係を削除しますか</value></data>
+  <data name="Dialog_DeleteCharacterWithRelationships" xml:space="preserve"><value>「{0}」と、つながっている関係 {1} 件を削除しますか。</value></data>
+  <data name="Graph_ZoomIn" xml:space="preserve"><value>拡大</value></data>
+  <data name="Graph_ZoomOut" xml:space="preserve"><value>縮小</value></data>
+  <data name="Graph_Fit" xml:space="preserve"><value>全体表示</value></data>
+  <data name="Graph_Groups" xml:space="preserve"><value>グループ分け</value></data>
+  <data name="Graph_CreateGroupFromSelection" xml:space="preserve"><value>選択した人物でグループを作成</value></data>
+  <data name="Graph_GroupSelection" xml:space="preserve"><value>選択中の人物をこのグループに追加</value></data>
+  <data name="Graph_RenameGroup" xml:space="preserve"><value>グループ名を変更</value></data>
+  <data name="Graph_ChangeGroupColor" xml:space="preserve"><value>背景色を変更</value></data>
+  <data name="Graph_UngroupSelection" xml:space="preserve"><value>選択した人物をすべてのグループから外す</value></data>
+  <data name="Graph_GroupName" xml:space="preserve"><value>グループ名</value></data>
+  <data name="Graph_GroupColor" xml:space="preserve"><value>背景色 (#RRGGBB)</value></data>
+  <data name="Graph_CreateGroupTitle" xml:space="preserve"><value>人物グループを作成</value></data>
+  <data name="Graph_GroupInputError" xml:space="preserve"><value>グループ名を入力してください。名前の重複がなく、色が #RRGGBB 形式であることを確認してください。</value></data>
+  <data name="Graph_ColorInputError" xml:space="preserve"><value>色を #RRGGBB 形式で入力してください。</value></data>
+  <data name="Graph_GroupCluster" xml:space="preserve"><value>{0} グループ</value></data>
+  <data name="Graph_SelectedCount" xml:space="preserve"><value>{0} 人を選択</value></data>
+  <data name="Relationship_LabelBackgroundColor" xml:space="preserve"><value>ラベルの背景色 (#RRGGBB)</value></data>
+  <data name="Relationship_LabelForegroundColor" xml:space="preserve"><value>ラベルの文字色 (#RRGGBB)</value></data>
+  <data name="Relationship_ColorError" xml:space="preserve"><value>色は不透明な #RRGGBB 形式で入力してください。</value></data>
+  <data name="Relationship_ConnectHandle" xml:space="preserve"><value>別の人物へドラッグすると、「関係名」というラベル付きの線を作成します。Enterキーでは編集欄を開きます。</value></data>
+  <data name="Character_ChangeAvatar" xml:space="preserve"><value>画像を選択</value></data>
+  <data name="Character_RemoveAvatar" xml:space="preserve"><value>画像を削除</value></data>
+  <data name="Character_ImageLoadError" xml:space="preserve"><value>PNG または JPEG 画像を読み込めませんでした。</value></data>
+  <data name="Character_AvatarPreview" xml:space="preserve"><value>人物画像のプレビュー</value></data>
+  <data name="Help_CharacterGraphGestures" xml:space="preserve"><value>Ctrl+クリックまたは空白ドラッグで2人を選ぶと、「関係名」というラベル付きの線を作成します。中ボタンドラッグまたはSpace+ドラッグでパンします。接続ハンドルから別の人物へのドラッグでも線を作成できます。</value></data>
+  <data name="Relationship_DefaultLabel" xml:space="preserve"><value>関係名</value></data>
+  <data name="Graph_GroupVisibility" xml:space="preserve"><value>グループの表示</value></data>
+  <data name="NodeCharactersDisplayCombo.Header" xml:space="preserve"><value>カードの人物表示</value></data>
+  <data name="NodeCharactersDefault.Content" xml:space="preserve"><value>ドキュメントの既定値を使用</value></data>
+  <data name="NodeCharactersShow.Content" xml:space="preserve"><value>人物を表示</value></data>
+  <data name="NodeCharactersHide.Content" xml:space="preserve"><value>人物を非表示</value></data>
+  <data name="TypeShowCharacters.Content" xml:space="preserve"><value>カードに人物を表示</value></data>
+  <data name="Detail_CharacterLine" xml:space="preserve"><value>・{0}</value></data>
+  <data name="Detail_CharacterLineWithGroups" xml:space="preserve"><value>・{0}（{1}）</value></data>
+  <data name="Detail_CharacterGroupSeparator" xml:space="preserve"><value>, </value></data>
 </root>

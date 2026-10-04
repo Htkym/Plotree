@@ -68,7 +68,7 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <MenuBar Grid.Row="0" AutomationProperties.AutomationId="MainMenuBar">
+        <MenuBar x:Name="MainMenuBar" Grid.Row="0" AutomationProperties.AutomationId="MainMenuBar">
             <MenuBarItem x:Uid="MenuFile" AutomationProperties.AutomationId="MenuFile">
                 <MenuFlyoutItem
                     x:Uid="MenuFileNew"
@@ -128,7 +128,7 @@
                         AutomationProperties.AutomationId="MenuFileExportText" />
                 </MenuFlyoutSubItem>
             </MenuBarItem>
-            <MenuBarItem x:Uid="MenuEdit" AutomationProperties.AutomationId="MenuEdit">
+            <MenuBarItem x:Name="EditMenu" x:Uid="MenuEdit" AutomationProperties.AutomationId="MenuEdit">
                 <MenuFlyoutItem
                     x:Uid="MenuEditCopy"
                     Command="{x:Bind ViewModel.CopyCommand}"
@@ -174,8 +174,23 @@
             </MenuBarItem>
         </MenuBar>
 
+        <NavigationView x:Name="SectionNavigation" Grid.Row="1" Grid.RowSpan="2"
+                        PaneDisplayMode="LeftCompact" IsPaneOpen="False"
+                        IsBackButtonVisible="Collapsed" IsSettingsVisible="False"
+                        SelectionChanged="OnSectionChanged"
+                        AutomationProperties.AutomationId="SectionNavigation">
+            <NavigationView.MenuItems>
+                <NavigationViewItem x:Name="PlotNavigationItem" x:Uid="NavPlot" Icon="Edit" IsSelected="True" AutomationProperties.AutomationId="NavPlot" />
+                <NavigationViewItem x:Name="RelationshipNavigationItem" x:Uid="NavRelationships" Icon="People" AutomationProperties.AutomationId="NavRelationships" />
+            </NavigationView.MenuItems>
+            <Grid>
+                <Grid x:Name="PlotSurface">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
         <!-- Toolbar: project row (title / counters) above a row of titled command groups -->
-        <Grid Grid.Row="1" Padding="12,4,12,8" RowSpacing="6">
+        <Grid x:Name="PlotToolbar" Grid.Row="0" Padding="12,4,12,8" RowSpacing="6">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -319,7 +334,7 @@
                                     <TextBlock Text="{x:Bind ViewModel.SelectedTagsSummary, Mode=OneWay}" TextTrimming="CharacterEllipsis" />
                                 </StackPanel>
                                 <Button.Flyout>
-                                    <Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <StackPanel Width="260" Spacing="8">
                                             <TextBlock x:Uid="TagAssignmentHint" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
                                             <ItemsControl ItemsSource="{x:Bind ViewModel.Tags, Mode=OneWay}">
@@ -352,7 +367,7 @@
                                 AutomationProperties.Name="Add color tag">
                                 <FontIcon Glyph="&#xE710;" FontSize="12" />
                                 <Button.Flyout>
-                                    <Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <StackPanel Spacing="8" Width="212">
                                             <TextBox
                                                 x:Name="NewTagNameBox"
@@ -381,7 +396,7 @@
                                 AutomationProperties.Name="Manage color tags">
                                 <FontIcon Glyph="&#xE713;" FontSize="12" />
                                 <Button.Flyout>
-                                    <Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <StackPanel Width="260" Spacing="8">
                                             <TextBlock x:Uid="ManageTagsTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                             <ListView
@@ -451,20 +466,17 @@
                                     <TextBlock x:Uid="CharacterAssignLabel" />
                                 </StackPanel>
                                 <Button.Flyout>
-                                    <Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <StackPanel Width="280" Spacing="8">
                                             <TextBlock Text="{x:Bind ViewModel.SelectedCharactersSummary, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
                                             <TextBlock x:Uid="CharacterAssignmentHint" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
+                                            <ScrollViewer MaxHeight="360" VerticalScrollBarVisibility="Auto">
                                             <ItemsControl ItemsSource="{x:Bind ViewModel.CharacterAssignmentGroups, Mode=OneWay}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate x:DataType="vm:CharacterAssignmentGroupViewModel">
-                                                        <StackPanel
-                                                            Spacing="2"
+                                                        <Expander Header="{x:Bind Name}" IsExpanded="True" HorizontalAlignment="Stretch"
+                                                            HorizontalContentAlignment="Stretch"
                                                             AutomationProperties.AutomationId="{x:Bind AutomationId}">
-                                                            <TextBlock
-                                                                Text="{x:Bind Name}"
-                                                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                                                Margin="0,6,0,2" />
                                                             <ItemsControl ItemsSource="{x:Bind Characters}">
                                                                 <ItemsControl.ItemTemplate>
                                                                     <DataTemplate x:DataType="vm:CharacterOptionViewModel">
@@ -477,10 +489,11 @@
                                                                     </DataTemplate>
                                                                 </ItemsControl.ItemTemplate>
                                                             </ItemsControl>
-                                                        </StackPanel>
+                                                        </Expander>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
+                                            </ScrollViewer>
                                         </StackPanel>
                                     </Flyout>
                                 </Button.Flyout>
@@ -494,8 +507,8 @@
                                     <TextBlock x:Uid="ManageCharactersLabel" />
                                 </StackPanel>
                                 <Button.Flyout>
-                                    <Flyout>
-                                        <StackPanel Width="300" Spacing="8">
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
+                                        <StackPanel Width="540" Spacing="8">
                                             <TextBlock x:Uid="ManageCharactersTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                             <Grid ColumnSpacing="4">
                                                 <Grid.ColumnDefinitions>
@@ -514,56 +527,66 @@
                                                     VerticalAlignment="Bottom"
                                                     AutomationProperties.AutomationId="AddCharacterButton" />
                                             </Grid>
-                                            <ListView
-                                                ItemsSource="{x:Bind ViewModel.Characters, Mode=OneWay}"
-                                                SelectedItem="{x:Bind ViewModel.SelectedCharacter, Mode=TwoWay}"
-                                                SelectionMode="Single"
-                                                MaxHeight="180"
-                                                ItemContainerStyle="{StaticResource ManagementListItemStyle}"
-                                                AutomationProperties.AutomationId="ManagedCharacterList">
-                                                <ListView.ItemTemplate>
-                                                    <DataTemplate x:DataType="vm:CharacterOptionViewModel">
-                                                        <Grid ColumnSpacing="6">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                                <ColumnDefinition Width="Auto" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock
-                                                                Text="{x:Bind Name}"
-                                                                VerticalAlignment="Center"
-                                                                TextTrimming="CharacterEllipsis" />
-                                                            <Button
-                                                                Grid.Column="1"
-                                                                Style="{StaticResource ManagementIconButtonStyle}"
-                                                                Click="OnEditCharacterClick"
-                                                                Loaded="OnEditItemButtonLoaded">
-                                                                <FontIcon Glyph="&#xE70F;" FontSize="12" />
-                                                            </Button>
-                                                            <Button
-                                                                Grid.Column="2"
-                                                                Style="{StaticResource ManagementIconButtonStyle}"
-                                                                Click="OnDeleteCharacterClick"
-                                                                Loaded="OnDeleteItemButtonLoaded">
-                                                                <FontIcon Glyph="&#xE74D;" FontSize="12" />
-                                                            </Button>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </ListView.ItemTemplate>
-                                            </ListView>
-                                            <TextBlock x:Uid="CharacterMembershipTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                            <TextBlock Text="{x:Bind ViewModel.SelectedCharacterGroupSummary, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
-                                            <ItemsControl ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate x:DataType="vm:CharacterGroupOptionViewModel">
-                                                        <CheckBox
-                                                            Content="{x:Bind Name}"
-                                                            IsChecked="{x:Bind IsChecked, Mode=TwoWay}"
-                                                            AutomationProperties.AutomationId="{x:Bind AutomationId}"
-                                                            AutomationProperties.Name="{x:Bind Name}" />
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
+                                            <Grid ColumnSpacing="12">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <ListView
+                                                    ItemsSource="{x:Bind ViewModel.Characters, Mode=OneWay}"
+                                                    SelectedItem="{x:Bind ViewModel.SelectedCharacter, Mode=TwoWay}"
+                                                    SelectionMode="Single"
+                                                    MaxHeight="180"
+                                                    ItemContainerStyle="{StaticResource ManagementListItemStyle}"
+                                                    AutomationProperties.AutomationId="ManagedCharacterList">
+                                                    <ListView.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CharacterOptionViewModel">
+                                                            <Grid ColumnSpacing="6">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                </Grid.ColumnDefinitions>
+                                                                <TextBlock
+                                                                    Text="{x:Bind Name}"
+                                                                    VerticalAlignment="Center"
+                                                                    TextTrimming="CharacterEllipsis" />
+                                                                <Button
+                                                                    Grid.Column="1"
+                                                                    Style="{StaticResource ManagementIconButtonStyle}"
+                                                                    Click="OnEditCharacterClick"
+                                                                    Loaded="OnEditItemButtonLoaded">
+                                                                    <FontIcon Glyph="&#xE70F;" FontSize="12" />
+                                                                </Button>
+                                                                <Button
+                                                                    Grid.Column="2"
+                                                                    Style="{StaticResource ManagementIconButtonStyle}"
+                                                                    Click="OnDeleteCharacterClick"
+                                                                    Loaded="OnDeleteItemButtonLoaded">
+                                                                    <FontIcon Glyph="&#xE74D;" FontSize="12" />
+                                                                </Button>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </ListView.ItemTemplate>
+                                                </ListView>
+                                                <StackPanel Grid.Column="1" Spacing="6">
+                                                <TextBlock x:Uid="CharacterMembershipTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                                <TextBlock Text="{x:Bind ViewModel.SelectedCharacterGroupSummary, Mode=OneWay}" TextWrapping="Wrap" Style="{StaticResource CaptionTextBlockStyle}" />
+                                                <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                                                <ItemsControl ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate x:DataType="vm:CharacterGroupOptionViewModel">
+                                                            <CheckBox
+                                                                Content="{x:Bind Name}"
+                                                                IsChecked="{x:Bind IsChecked, Mode=TwoWay}"
+                                                                AutomationProperties.AutomationId="{x:Bind AutomationId}"
+                                                                AutomationProperties.Name="{x:Bind Name}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                                                                        </ScrollViewer>
+                                                </StackPanel>
+                                            </Grid>
                                         </StackPanel>
                                     </Flyout>
                                 </Button.Flyout>
@@ -577,7 +600,7 @@
                                     <TextBlock x:Uid="ManageGroupsLabel" />
                                 </StackPanel>
                                 <Button.Flyout>
-                                    <Flyout>
+                                    <Flyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <StackPanel Width="300" Spacing="8">
                                             <TextBlock x:Uid="ManageGroupsTitle" Style="{StaticResource BodyStrongTextBlockStyle}" />
                                             <Grid ColumnSpacing="4">
@@ -662,7 +685,7 @@
                                     <TextBlock x:Uid="AutoLayoutLabel" />
                                 </StackPanel>
                                 <SplitButton.Flyout>
-                                    <MenuFlyout Placement="BottomEdgeAlignedRight">
+                                    <MenuFlyout Placement="BottomEdgeAlignedLeft" ShouldConstrainToRootBounds="True">
                                         <MenuFlyoutItem
                                             x:Uid="RelayoutAllItem"
                                             Command="{x:Bind ViewModel.RelayoutAllCommand}"
@@ -724,7 +747,7 @@
         </Grid>
 
         <!-- Canvas + details panel -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
@@ -741,9 +764,9 @@
                 BorderThickness="1,0,0,0">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Padding="16,12,16,24" Spacing="12">
-                        <TextBlock x:Uid="DetailsHeader" Style="{StaticResource SubtitleTextBlockStyle}" />
+                        <TextBlock IsTextSelectionEnabled="True" x:Uid="DetailsHeader" Style="{StaticResource SubtitleTextBlockStyle}" />
 
-                        <TextBlock
+                        <TextBlock IsTextSelectionEnabled="True"
                             x:Uid="DetailsHint"
                             Style="{StaticResource CaptionTextBlockStyle}"
                             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -754,17 +777,17 @@
                             Spacing="2"
                             Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.HasNodeSelection), Mode=OneWay}"
                             AutomationProperties.AutomationId="NodeAssignmentSummary">
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 x:Uid="SelectionTagsLabel"
                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 Text="{x:Bind ViewModel.SelectedTagsSummary, Mode=OneWay}"
                                 TextWrapping="Wrap"
                                 AutomationProperties.AutomationId="SelectedTagsSummaryText" />
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 x:Uid="SelectionCharactersLabel"
                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 Text="{x:Bind ViewModel.SelectedCharactersSummary, Mode=OneWay}"
                                 TextWrapping="Wrap"
                                 AutomationProperties.AutomationId="SelectedCharactersSummaryText" />
@@ -775,11 +798,11 @@
                             Spacing="8"
                             Visibility="{x:Bind local:MainPage.BoolToVisibility(ViewModel.IsMultiNodeSelected), Mode=OneWay}"
                             AutomationProperties.AutomationId="MultiSelectionPanel">
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 Style="{StaticResource BodyStrongTextBlockStyle}"
                                 Text="{x:Bind ViewModel.SelectionSummary, Mode=OneWay}"
                                 AutomationProperties.AutomationId="SelectionCountText" />
-                            <TextBlock
+                            <TextBlock IsTextSelectionEnabled="True"
                                 x:Uid="MultiSelectionHint"
                                 Style="{StaticResource CaptionTextBlockStyle}"
                                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
@@ -843,14 +866,14 @@
 
                             <!-- Per-node appearance overrides -->
                             <StackPanel Spacing="6">
-                                <TextBlock x:Uid="NodeAppearanceLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
-                                <TextBlock
+                                <TextBlock IsTextSelectionEnabled="True" x:Uid="NodeAppearanceLabel" Style="{StaticResource BodyStrongTextBlockStyle}" />
+                                <TextBlock IsTextSelectionEnabled="True"
                                     x:Uid="NodeAppearanceHint"
                                     Style="{StaticResource CaptionTextBlockStyle}"
                                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     TextWrapping="Wrap" />
 
-                                <TextBlock x:Uid="NodeHeaderColorLabel" Style="{StaticResource CaptionTextBlockStyle}" />
+                                <TextBlock IsTextSelectionEnabled="True" x:Uid="NodeHeaderColorLabel" Style="{StaticResource CaptionTextBlockStyle}" />
                                 <StackPanel Orientation="Horizontal" Spacing="4">
                                     <Button Tag="#4F6BED" Background="#4F6BED" Style="{StaticResource ColorSwatchButtonStyle}" Click="OnNodeColorSwatchClick" AutomationProperties.AutomationId="NodeColorSwatchBlue" AutomationProperties.Name="Blue" />
                                     <Button Tag="#2E8B57" Background="#2E8B57" Style="{StaticResource ColorSwatchButtonStyle}" Click="OnNodeColorSwatchClick" AutomationProperties.AutomationId="NodeColorSwatchGreen" AutomationProperties.Name="Green" />
@@ -878,6 +901,14 @@
                                     <ComboBoxItem x:Uid="NodeDisplayModeFull" AutomationProperties.AutomationId="NodeDisplayModeFull" />
                                     <ComboBoxItem x:Uid="NodeDisplayModeCompact" AutomationProperties.AutomationId="NodeDisplayModeCompact" />
                                     <ComboBoxItem x:Uid="NodeDisplayModeTitleOnly" AutomationProperties.AutomationId="NodeDisplayModeTitleOnly" />
+                                </ComboBox>
+
+                                <ComboBox x:Uid="NodeCharactersDisplayCombo" HorizontalAlignment="Stretch"
+                                    SelectedIndex="{x:Bind ViewModel.NodeCharactersDisplayIndex, Mode=TwoWay}"
+                                    AutomationProperties.AutomationId="NodeCharactersDisplayCombo">
+                                    <ComboBoxItem x:Uid="NodeCharactersDefault" />
+                                    <ComboBoxItem x:Uid="NodeCharactersShow" />
+                                    <ComboBoxItem x:Uid="NodeCharactersHide" />
                                 </ComboBox>
 
                                 <Button
@@ -910,6 +941,10 @@
                 </ScrollViewer>
             </Border>
         </Grid>
+                </Grid>
+                <views:CharacterGraph x:Name="CharacterGraphView" Visibility="Collapsed" />
+            </Grid>
+        </NavigationView>
 
         <!--
             Project-level node type appearance defaults. Declared here so x:Bind can reach the
@@ -991,6 +1026,10 @@
                     <ComboBoxItem x:Uid="TypeDisplayModeCompact" AutomationProperties.AutomationId="TypeDisplayModeCompact" />
                     <ComboBoxItem x:Uid="TypeDisplayModeTitleOnly" AutomationProperties.AutomationId="TypeDisplayModeTitleOnly" />
                 </ComboBox>
+
+                <CheckBox x:Uid="TypeShowCharacters"
+                    IsChecked="{x:Bind ViewModel.TypeShowCharacters, Mode=TwoWay}"
+                    AutomationProperties.AutomationId="TypeShowCharacters" />
 
                 <Button
                     x:Uid="ResetTypeAppearanceButton"

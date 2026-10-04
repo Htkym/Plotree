@@ -38,6 +38,26 @@ public sealed class SvgExportServiceTests
     }
 
     [TestMethod]
+    public void Export_CharacterVisibilityUsesDocumentDefaultAndPerNodeOverride()
+    {
+        var project = SimpleProject();
+        project.Characters.Add(new Character { Id = "character", Name = "Ari & Kai" });
+        project.Nodes[0].CharacterIds.Add("character");
+        project.Appearance.Scene.ShowCharacters = true;
+        var shown = ParseSvg(SvgExportService.Export(project));
+        Assert.IsTrue(shown.Descendants(Svg + "tspan").Any(element => element.Value == "Ari & Kai"));
+        var appearance = new NodeAppearance { ShowCharacters = false };
+        project.Nodes[0].Appearance = appearance;
+        var hidden = ParseSvg(SvgExportService.Export(project));
+        Assert.IsFalse(hidden.Descendants(Svg + "tspan").Any(element => element.Value.Contains("Ari")));
+        appearance.ShowCharacters = true;
+        appearance.DisplayMode = NodeDisplayMode.TitleOnly;
+        var titleOnly = ParseSvg(SvgExportService.Export(project));
+        Assert.IsTrue(titleOnly.Descendants(Svg + "tspan").Any(element => element.Value == "Ari & Kai"));
+        Assert.IsFalse(titleOnly.Descendants(Svg + "tspan").Any(element => element.Value == "Some body text"));
+    }
+
+    [TestMethod]
     public void Export_ProducesWellFormedSvgWithADeclaration()
     {
         var svg = SvgExportService.Export(SimpleProject());

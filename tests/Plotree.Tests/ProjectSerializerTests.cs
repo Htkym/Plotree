@@ -12,6 +12,58 @@ namespace Plotree.Tests;
 [TestClass]
 public sealed class ProjectSerializerTests
 {
+    [TestMethod]
+    public void LegacyCharacters_GetStableNonOverlappingPositions()
+    {
+        const string json = """
+            {"version":3,"characters":[{"id":"a","name":"A"},{"id":"b","name":"B"},{"id":"c","name":"C","graphX":440,"graphY":0}]}
+            """;
+
+        var project = ProjectSerializer.Deserialize(json);
+        Assert.AreEqual(4, project.Version);
+        Assert.IsEmpty(project.Relationships);
+        Assert.AreEqual(0d, project.Characters[0].GraphX);
+        Assert.AreEqual(220d, project.Characters[1].GraphX);
+        Assert.AreEqual(440d, project.Characters[2].GraphX);
+        var restored = ProjectSerializer.Deserialize(ProjectSerializer.Serialize(project));
+        CollectionAssert.AreEqual(
+            project.Characters.Select(c => (c.GraphX, c.GraphY)).ToArray(),
+            restored.Characters.Select(c => (c.GraphX, c.GraphY)).ToArray());
+
+        var nearExisting = ProjectSerializer.Deserialize("""
+            {"version":3,"characters":[{"id":"a","graphX":20,"graphY":0},{"id":"b"}]}
+            """);
+        Assert.AreEqual(220d, nearExisting.Characters[1].GraphX);
+    }
+
+    [TestMethod]
+    public void V4Relationships_RoundTripAndRejectInvalidData()
+    {
+        var project = new PlotProject
+        {
+            Characters = [new Character { Id = "a", Name = "A" }, new Character { Id = "b", Name = "B" }],
+            Relationships = [new CharacterRelationship { Id = "r", FirstCharacterId = "a", SecondCharacterId = "b", Label = "friends" }],
+        };
+
+        var restored = ProjectSerializer.Deserialize(ProjectSerializer.Serialize(project));
+        Assert.AreEqual("r", restored.Relationships.Single().Id);
+        Assert.AreEqual("friends", restored.Relationships.Single().Label);
+
+        project.Relationships[0].Label = string.Empty;
+        Assert.AreEqual(string.Empty,
+            ProjectSerializer.Deserialize(ProjectSerializer.Serialize(project)).Relationships.Single().Label);
+
+        foreach (var invalid in new[]
+        {
+            """{"version":4,"characters":[{"id":"a"}],"relationships":[{"id":"r","firstCharacterId":"a","secondCharacterId":"a","label":"self"}]}""",
+            """{"version":4,"characters":[{"id":"a"},{"id":"b"}],"relationships":[{"id":"r","firstCharacterId":"a","secondCharacterId":"b","label":null}]}""",
+            """{"version":4,"characters":[{"id":"a"},{"id":"b"}],"relationships":[{"id":"r","firstCharacterId":"a","secondCharacterId":"b","label":"x"},{"id":"s","firstCharacterId":"b","secondCharacterId":"a","label":"y"}]}""",
+        })
+        {
+            Assert.ThrowsExactly<InvalidDataException>(() => ProjectSerializer.Deserialize(invalid));
+        }
+    }
+
     private const string V1Json = """
     {
       "version": 1,

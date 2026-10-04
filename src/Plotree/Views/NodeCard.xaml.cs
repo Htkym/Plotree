@@ -92,14 +92,16 @@ public sealed partial class NodeCard : UserControl
         AutomationProperties.SetItemStatus(this, statusKey.Length == 0 ? string.Empty : Loc.Get(statusKey));
     }
 
-    public int TitleMaxLines(NodeDisplayMode displayMode) =>
-        displayMode == NodeDisplayMode.TitleOnly ? 3 : 2;
+    public int TitleMaxLines(NodeDisplayMode displayMode, bool showCharacters, string names, double height) =>
+        NodeTextLayoutCalculator.CardTitleLineLimit(displayMode, height, showCharacters && names.Length > 0);
 
     public int BodyMaxLines(
         NodeDisplayMode displayMode,
         string title,
         double cardWidth,
-        double cardHeight)
+        double cardHeight,
+        bool showCharacters,
+        string characterNames)
     {
         if (displayMode == NodeDisplayMode.TitleOnly)
         {
@@ -116,15 +118,21 @@ public sealed partial class NodeCard : UserControl
         const double horizontalMargins = 16;
         const double verticalMargins = 8;
         var contentWidth = Math.Max(0, cardWidth - accentWidth - horizontalMargins);
-        var contentHeight = Math.Max(0, cardHeight - headerHeight - verticalMargins);
+        var contentHeight = Math.Max(0, cardHeight - headerHeight - verticalMargins
+            - (showCharacters && characterNames.Length > 0 ? NodeTextLayoutCalculator.CharacterLineHeight : 0));
         var budget = NodeTextLayoutCalculator.Calculate(
             title,
             displayMode,
             contentWidth,
             contentHeight,
-            hasBody: true);
+            hasBody: true,
+            titleLineLimit: NodeTextLayoutCalculator.CardTitleLineLimit(displayMode, cardHeight,
+                showCharacters && characterNames.Length > 0));
         return Math.Max(1, budget.BodyLineCapacity);
     }
+
+    public Visibility CharactersVisibility(bool showCharacters, string names) =>
+        showCharacters && names.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility BodyVisibility(NodeDisplayMode displayMode) =>
         displayMode == NodeDisplayMode.TitleOnly ? Visibility.Collapsed : Visibility.Visible;

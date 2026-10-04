@@ -171,6 +171,9 @@ public partial class MainPageViewModel : ObservableObject
     /// <summary>Raised after the canvas collections have structurally changed.</summary>
     public event EventHandler? GraphChanged;
 
+    /// <summary>Raised when character positions or relationships change.</summary>
+    public event EventHandler? CharacterGraphChanged;
+
     [ObservableProperty]
     public partial bool IsPanelOpen { get; set; } = true;
 
@@ -196,18 +199,10 @@ public partial class MainPageViewModel : ObservableObject
     {
         get
         {
-            var summaries = _selectedNodes
-                .SelectMany(node => node.Model.CharacterIds)
-                .Distinct(StringComparer.Ordinal)
-                .Select(id => Project.Characters.FirstOrDefault(character => character.Id == id))
-                .OfType<Character>()
-                .Where(character => !string.IsNullOrWhiteSpace(character.Name))
-                .Select(character => $"{character.Name} ({GetCharacterGroupSummary(character)})")
-                .ToArray();
-
-            return Loc.Format(
-                "Summary_Characters",
-                summaries.Length == 0 ? Loc.Get("Summary_None") : string.Join(", ", summaries));
+            var lines = CharacterSummaryFormatter.DetailLines(Project,
+                _selectedNodes.SelectMany(node => node.Model.CharacterIds));
+            return Loc.Format("Summary_Characters", lines.Length == 0
+                ? Loc.Get("Summary_None") : "\n" + lines);
         }
     }
 
@@ -485,6 +480,7 @@ public partial class MainPageViewModel : ObservableObject
             .ToList();
         var groupIds = characters
             .SelectMany(character => character.GroupIds)
+            .Concat(characters.Select(character => character.GraphGroupId).OfType<string>())
             .ToHashSet(StringComparer.Ordinal);
         var groups = Project.Groups
             .Where(group => groupIds.Contains(group.Id))
@@ -626,6 +622,10 @@ public partial class MainPageViewModel : ObservableObject
                     .Select(groupId => groupIdMap[groupId])
                     .Distinct(StringComparer.Ordinal)
                     .ToList();
+                existing.GraphGroupId = source.GraphGroupId is { } graphGroupId
+                    && groupIdMap.TryGetValue(graphGroupId, out var mappedGraphGroupId)
+                        ? mappedGraphGroupId
+                        : null;
                 Project.Characters.Add(existing);
             }
 
@@ -684,12 +684,17 @@ public partial class MainPageViewModel : ObservableObject
         Color = source.Color,
         Note = source.Note,
         GroupIds = [.. source.GroupIds],
+        GraphGroupId = source.GraphGroupId,
+        AvatarData = source.AvatarData,
+        AvatarContentType = source.AvatarContentType,
     };
 
     private static CharacterGroup CloneGroup(CharacterGroup source) => new()
     {
         Id = source.Id,
         Name = source.Name,
+        BackgroundColor = source.BackgroundColor,
+        IsVisible = source.IsVisible,
     };
 
     private sealed record ClipboardSnapshot(
@@ -1028,6 +1033,7 @@ public partial class MainPageViewModel : ObservableObject
         nameof(TypeHeaderColor),
         nameof(TypeWidth),
         nameof(TypeHeight),
+        nameof(TypeShowCharacters),
         nameof(TypeDisplayModeIndex),
         nameof(HasTypeAppearance))]
     public partial int AppearanceTypeIndex { get; set; }
@@ -1103,6 +1109,22 @@ public partial class MainPageViewModel : ObservableObject
         }
     }
 
+    public bool TypeShowCharacters
+    {
+        get => AppearanceResolver.ResolveDefaults(Project, AppearanceType).ShowCharacters;
+        set { if (value != TypeShowCharacters) ApplyTypeAppearance(appearance => appearance.ShowCharacters = value); }
+    }
+
+    public int NodeCharactersDisplayIndex
+    {
+        get => SelectedNodeAppearance?.ShowCharacters is { } show ? (show ? 1 : 2) : 0;
+        set
+        {
+            if (value is >= 0 and <= 2 && value != NodeCharactersDisplayIndex)
+                ApplyNodeAppearance(appearance => appearance.ShowCharacters = value == 0 ? null : value == 1);
+        }
+    }
+
     public bool HasTypeAppearance => !TypeDefaults.IsEmpty;
 
     [RelayCommand]
@@ -1112,6 +1134,7 @@ public partial class MainPageViewModel : ObservableObject
         appearance.Width = null;
         appearance.Height = null;
         appearance.DisplayMode = null;
+        appearance.ShowCharacters = null;
     });
 
     private void ApplyTypeAppearance(Action<NodeAppearance> apply)
@@ -1127,6 +1150,7 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(TypeWidth));
         OnPropertyChanged(nameof(TypeHeight));
         OnPropertyChanged(nameof(TypeDisplayModeIndex));
+        OnPropertyChanged(nameof(TypeShowCharacters));
         OnPropertyChanged(nameof(HasTypeAppearance));
 
         // Do not recreate wrappers for a type-default edit: every existing matching card receives
@@ -1195,6 +1219,7 @@ public partial class MainPageViewModel : ObservableObject
 
     private void NotifyNodeAppearanceChanged()
     {
+        OnPropertyChanged(nameof(NodeCharactersDisplayIndex));
         OnPropertyChanged(nameof(HasNodeColorOverride));
         OnPropertyChanged(nameof(HasNodeSizeOverride));
         OnPropertyChanged(nameof(NodeDisplayModeIndex));
@@ -1357,10 +1382,12 @@ public partial class MainPageViewModel : ObservableObject
         {
             character = new Character { Name = name };
             Project.Characters.Add(character);
+            ProjectSerializer.AssignMissingCharacterPositions(Project.Characters);
         });
         RebuildCharacterOptions();
         SelectedCharacter = Characters.FirstOrDefault(option => option.Id == character.Id);
         NotifySelectionChanged();
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public bool EditCharacter(CharacterOptionViewModel? option, string name)
@@ -1396,6 +1423,8 @@ public partial class MainPageViewModel : ObservableObject
         MutateProject(() =>
         {
             Project.Characters.Remove(option.Model);
+            Project.Relationships.RemoveAll(relationship =>
+                relationship.FirstCharacterId == id || relationship.SecondCharacterId == id);
             foreach (var node in Project.Nodes)
             {
                 node.CharacterIds.RemoveAll(characterId =>
@@ -1421,6 +1450,7 @@ public partial class MainPageViewModel : ObservableObject
                 node.SetCharacterWithoutRecording(option.Id, isPresent);
             }
         });
+        foreach (var node in _selectedNodes) node.RefreshCharacters();
         NotifySelectionChanged();
     }
 
@@ -1435,6 +1465,7 @@ public partial class MainPageViewModel : ObservableObject
         MutateProject(() => Project.Groups.Add(new CharacterGroup { Name = name }));
         RebuildGroupOptions();
         RefreshCharacterGroupSummaries();
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public bool EditGroup(CharacterGroupOptionViewModel? option, string name)
@@ -1474,12 +1505,171 @@ public partial class MainPageViewModel : ObservableObject
             {
                 character.GroupIds.RemoveAll(groupId =>
                     string.Equals(groupId, id, StringComparison.Ordinal));
+                if (character.GraphGroupId == id)
+                {
+                    character.GraphGroupId = null;
+                }
             }
         });
 
         SelectedGroup = null;
         RebuildGraph();
     }
+
+    public CharacterGroup? CreateGraphGroup(string name, string? backgroundColor, IEnumerable<string> characterIds)
+    {
+        name = name.Trim();
+        var ids = characterIds.Distinct(StringComparer.Ordinal)
+            .Where(id => Project.Characters.Any(character => character.Id == id)).ToArray();
+        if (name.Length == 0 || ids.Length == 0
+            || Project.Groups.Any(group => string.Equals(group.Name, name, StringComparison.OrdinalIgnoreCase))
+            || !IsOpaqueHexColorOrEmpty(backgroundColor))
+        {
+            return null;
+        }
+
+        var group = new CharacterGroup { Name = name, BackgroundColor = NormalizeColor(backgroundColor) };
+        MutateProject(() =>
+        {
+            Project.Groups.Add(group);
+            foreach (var character in Project.Characters.Where(character => ids.Contains(character.Id)))
+            {
+                character.GraphGroupId = group.Id;
+                character.GroupIds.Add(group.Id);
+            }
+
+            // Grouping changes backgrounds and membership, never character positions.
+        });
+        RebuildGraph();
+        return group;
+    }
+
+    public bool AssignCharactersToGraphGroup(IEnumerable<string> characterIds, string? groupId)
+    {
+        if (groupId is not null && !Project.Groups.Any(group => group.Id == groupId))
+        {
+            return false;
+        }
+
+        var ids = characterIds.Distinct(StringComparer.Ordinal)
+            .Where(id => Project.Characters.Any(character => character.Id == id)).ToArray();
+        if (ids.Length == 0)
+        {
+            return false;
+        }
+        if (ids.All(id =>
+        {
+            var character = Project.Characters.First(candidate => candidate.Id == id);
+            return groupId is null ? character.GroupIds.Count == 0 : character.GroupIds.Contains(groupId);
+        }))
+        {
+            return true;
+        }
+
+        MutateProject(() =>
+        {
+            foreach (var character in Project.Characters.Where(character => ids.Contains(character.Id)))
+            {
+                character.GraphGroupId = groupId;
+                if (groupId is null)
+                {
+                    character.GroupIds.Clear();
+                }
+                if (groupId is not null && !character.GroupIds.Contains(groupId))
+                {
+                    character.GroupIds.Add(groupId);
+                }
+            }
+
+            // Existing coordinates are preserved, including characters outside the group.
+        });
+        SyncGroupChecks();
+        RefreshCharacterGroupSummaries();
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    public bool SetGraphGroupBackgroundColor(string groupId, string? backgroundColor)
+    {
+        if (!IsOpaqueHexColorOrEmpty(backgroundColor)
+            || Project.Groups.FirstOrDefault(group => group.Id == groupId) is not { } group)
+        {
+            return false;
+        }
+
+        MutateProject(() => group.BackgroundColor = NormalizeColor(backgroundColor));
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    public void SetCharacterAvatar(string characterId, string imageData, string contentType)
+    {
+        if (contentType is not ("image/png" or "image/jpeg")
+            || Project.Characters.FirstOrDefault(character => character.Id == characterId) is not { } character)
+        {
+            return;
+        }
+
+        MutateProject(() =>
+        {
+            character.AvatarData = imageData;
+            character.AvatarContentType = contentType;
+        });
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void RemoveCharacterAvatar(string characterId)
+    {
+        if (Project.Characters.FirstOrDefault(character => character.Id == characterId) is not { } character)
+        {
+            return;
+        }
+
+        MutateProject(() =>
+        {
+            character.AvatarData = null;
+            character.AvatarContentType = null;
+        });
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    /// <summary>Transient group selection; it does not edit the project or history.</summary>
+    public string? SelectedGraphGroupId { get; private set; }
+
+    public bool SelectGraphGroup(string? groupId)
+    {
+        if (groupId is not null && !Project.Groups.Any(group => group.Id == groupId && group.IsVisible))
+        {
+            return false;
+        }
+        SelectedGraphGroupId = groupId;
+        return true;
+    }
+
+    public bool SetGraphGroupVisible(string groupId, bool isVisible)
+    {
+        if (Project.Groups.FirstOrDefault(group => group.Id == groupId) is not { } group)
+        {
+            return false;
+        }
+        if (group.IsVisible == isVisible)
+        {
+            return true;
+        }
+        MutateProject(() => group.IsVisible = isVisible);
+        if (!isVisible && SelectedGraphGroupId == groupId)
+        {
+            SelectedGraphGroupId = null;
+        }
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private static bool IsOpaqueHexColorOrEmpty(string? color) =>
+        string.IsNullOrWhiteSpace(color) || (color.Trim().Length is 4 or 7 && ColorHex.Parse(color) is not null);
+
+    private static string? NormalizeColor(string? color) =>
+        string.IsNullOrWhiteSpace(color) ? null : color.Trim().ToUpperInvariant();
 
     internal void OnCharacterGroupToggled(CharacterGroupOptionViewModel option, bool isChecked)
     {
@@ -1497,12 +1687,119 @@ public partial class MainPageViewModel : ObservableObject
             else if (!isChecked)
             {
                 character.Model.GroupIds.Remove(option.Id);
+                if (character.Model.GraphGroupId == option.Id)
+                {
+                    character.Model.GraphGroupId = null;
+                }
             }
         });
 
         SyncGroupChecks();
         RefreshCharacterGroupSummaries();
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    /// <summary>Returns a localization key explaining why a relationship cannot be saved.</summary>
+    public string? ValidateRelationship(
+        string? id,
+        string firstId,
+        string secondId,
+        string label,
+        string? labelBackgroundColor = null,
+        string? labelForegroundColor = null)
+    {
+        if (!Project.Characters.Any(character => character.Id == firstId)
+            || !Project.Characters.Any(character => character.Id == secondId))
+        {
+            return "Relationship_SelectTwo";
+        }
+
+        if (firstId == secondId)
+        {
+            return "Relationship_SelfError";
+        }
+
+        if (!IsOpaqueHexColorOrEmpty(labelBackgroundColor) || !IsOpaqueHexColorOrEmpty(labelForegroundColor))
+        {
+            return "Relationship_ColorError";
+        }
+
+        if (Project.Relationships.Any(relationship => relationship.Id != id
+            && ((relationship.FirstCharacterId == firstId && relationship.SecondCharacterId == secondId)
+                || (relationship.FirstCharacterId == secondId && relationship.SecondCharacterId == firstId))))
+        {
+            return "Relationship_DuplicateError";
+        }
+
+        return null;
+    }
+
+    public CharacterRelationship? SaveRelationship(
+        string? id,
+        string firstId,
+        string secondId,
+        string label,
+        string? labelBackgroundColor = null,
+        string? labelForegroundColor = null)
+    {
+        if ((id is not null && !Project.Relationships.Any(relationship => relationship.Id == id))
+            || ValidateRelationship(id, firstId, secondId, label, labelBackgroundColor, labelForegroundColor) is not null)
+        {
+            return null;
+        }
+
+        CharacterRelationship relationship = null!;
+        MutateProject(() =>
+        {
+            relationship = Project.Relationships.FirstOrDefault(item => item.Id == id)
+                ?? new CharacterRelationship();
+            relationship.FirstCharacterId = firstId;
+            relationship.SecondCharacterId = secondId;
+            relationship.Label = id is null && string.IsNullOrWhiteSpace(label)
+                ? Loc.Get("Relationship_DefaultLabel") : label.Trim();
+            relationship.LabelBackgroundColor = NormalizeColor(labelBackgroundColor);
+            relationship.LabelForegroundColor = NormalizeColor(labelForegroundColor);
+            if (id is null)
+            {
+                Project.Relationships.Add(relationship);
+            }
+        });
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+        return relationship;
+    }
+
+    public void DeleteRelationship(string id)
+    {
+        MutateProject(() => Project.Relationships.RemoveAll(relationship => relationship.Id == id));
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void MoveCharacter(string id, double x, double y)
+    {
+        if (!double.IsFinite(x) || !double.IsFinite(y)
+            || Project.Characters.FirstOrDefault(character => character.Id == id) is not { } character)
+        {
+            return;
+        }
+
+        if (_geometryBefore is null)
+        {
+            MutateProject(() =>
+            {
+                character.GraphX = x;
+                character.GraphY = y;
+            });
+            CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
+
+        character.GraphX = x;
+        character.GraphY = y;
+    }
+
+    public void BeginCharacterMove() => BeginGeometryEdit();
+
+    public void EndCharacterMove() => CommitGeometryEdit();
 
     internal string GetCharacterGroupSummary(Character character)
     {
@@ -1669,6 +1966,8 @@ public partial class MainPageViewModel : ObservableObject
         }
         RebuildCharacterAssignmentGroups();
         OnPropertyChanged(nameof(SelectedCharacterGroupSummary));
+        OnPropertyChanged(nameof(SelectedCharactersSummary));
+        foreach (var node in Nodes) node.RefreshCharacters();
     }
 
     // ----- File commands and exports -----
@@ -1924,6 +2223,10 @@ public partial class MainPageViewModel : ObservableObject
 
     private void RebuildGraph()
     {
+        if (!Project.Groups.Any(group => group.Id == SelectedGraphGroupId && group.IsVisible))
+        {
+            SelectedGraphGroupId = null;
+        }
         var selectedNodeIds = _selectedNodes.Select(node => node.Model.Id).ToList();
         var primaryNodeId = SelectedNode?.Model.Id;
         var selectedEdgeId = SelectedEdge?.Model.Id;
@@ -1958,6 +2261,7 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(NodeCount));
         NotifySelectionChanged();
         GraphChanged?.Invoke(this, EventArgs.Empty);
+        CharacterGraphChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void RestoreSelection(
@@ -2011,6 +2315,7 @@ public partial class MainPageViewModel : ObservableObject
         OnPropertyChanged(nameof(TypeWidth));
         OnPropertyChanged(nameof(TypeHeight));
         OnPropertyChanged(nameof(TypeDisplayModeIndex));
+        OnPropertyChanged(nameof(TypeShowCharacters));
         OnPropertyChanged(nameof(HasTypeAppearance));
     }
 

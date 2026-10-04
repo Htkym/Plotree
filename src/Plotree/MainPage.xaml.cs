@@ -78,6 +78,7 @@ public sealed partial class MainPage : Page
         }).IsChecked = true;
 
         CanvasView.ViewModel = ViewModel;
+        CharacterGraphView.ViewModel = ViewModel;
         CanvasView.NodeActivated += OnNodeActivated;
         ViewModel.RecentFiles.CollectionChanged += OnRecentFilesChanged;
         RebuildRecentFilesMenu();
@@ -114,6 +115,9 @@ public sealed partial class MainPage : Page
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
     {
         Loaded -= OnPageLoaded;
+        Plotree.Views.InAppFlyout.ConfigureTree(MainMenuBar);
+        Plotree.Views.InAppFlyout.ConfigureTree(PlotToolbar);
+        DirectionCombo.DropDownOpened += (_, _) => Plotree.Views.InAppFlyout.ConfigureDropDown(DirectionCombo);
         if (App.LaunchFilePath is { } path)
         {
             await ViewModel.LoadFromPathAsync(path);
@@ -122,8 +126,34 @@ public sealed partial class MainPage : Page
 
     private void OnEscapeInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
     {
-        ViewModel.ClearSelection();
+        if (IsRelationshipView)
+        {
+            CharacterGraphView.ClearSelection();
+        }
+        else
+        {
+            ViewModel.ClearSelection();
+        }
         args.Handled = true;
+    }
+
+    private bool IsRelationshipView => ReferenceEquals(SectionNavigation.SelectedItem, RelationshipNavigationItem);
+
+    private void OnSectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (PlotSurface is null || CharacterGraphView is null)
+        {
+            return;
+        }
+
+        var graph = IsRelationshipView;
+        PlotSurface.Visibility = graph ? Visibility.Collapsed : Visibility.Visible;
+        CharacterGraphView.Visibility = graph ? Visibility.Visible : Visibility.Collapsed;
+        EditMenu.IsEnabled = !graph;
+        if (graph)
+        {
+            CharacterGraphView.Fit();
+        }
     }
 
     private void OnDeleteInvoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
@@ -134,7 +164,11 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (ViewModel.DeleteSelectedCommand.CanExecute(null))
+        if (IsRelationshipView)
+        {
+            CharacterGraphView.DeleteSelection();
+        }
+        else if (ViewModel.DeleteSelectedCommand.CanExecute(null))
         {
             ViewModel.DeleteSelectedCommand.Execute(null);
         }
@@ -150,7 +184,10 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        ViewModel.SelectAllNodesCommand.Execute(null);
+        if (!IsRelationshipView)
+        {
+            ViewModel.SelectAllNodesCommand.Execute(null);
+        }
         args.Handled = true;
     }
 
@@ -162,7 +199,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (ViewModel.CopyCommand.CanExecute(null))
+        if (!IsRelationshipView && ViewModel.CopyCommand.CanExecute(null))
         {
             ViewModel.CopyCommand.Execute(null);
         }
@@ -178,7 +215,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (ViewModel.PasteCommand.CanExecute(null))
+        if (!IsRelationshipView && ViewModel.PasteCommand.CanExecute(null))
         {
             ViewModel.PasteCommand.Execute(null);
         }
@@ -224,7 +261,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        CanvasView.ZoomIn();
+        if (IsRelationshipView) CharacterGraphView.ZoomIn(); else CanvasView.ZoomIn();
         args.Handled = true;
     }
 
@@ -236,7 +273,7 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        CanvasView.ZoomOut();
+        if (IsRelationshipView) CharacterGraphView.ZoomOut(); else CanvasView.ZoomOut();
         args.Handled = true;
     }
 
@@ -260,7 +297,8 @@ public sealed partial class MainPage : Page
 
     /// <summary>Whether a text-editing control currently owns the keyboard focus.</summary>
     private bool IsTextInputFocused() =>
-        FocusManager.GetFocusedElement(XamlRoot) is TextBox or RichEditBox or AutoSuggestBox or PasswordBox;
+        FocusManager.GetFocusedElement(XamlRoot) is TextBox or RichEditBox or AutoSuggestBox or PasswordBox
+            or TextBlock { IsTextSelectionEnabled: true } or RichTextBlock { IsTextSelectionEnabled: true };
 
     private void OnNodeActivated(object? sender, NodeViewModel node)
     {
@@ -561,11 +599,17 @@ public sealed partial class MainPage : Page
 
     private async void OnDeleteCharacterClick(object sender, RoutedEventArgs e)
     {
-        if (GetItem<CharacterOptionViewModel>(sender) is not { } character
-            || !await ConfirmDeleteAsync(
-                "Dialog_DeleteCharacterTitle",
-                "Dialog_DeleteCharacterContent",
-                character.Name))
+        if (GetItem<CharacterOptionViewModel>(sender) is not { } character)
+        {
+            return;
+        }
+
+        var relatedCount = ViewModel.Project.Relationships.Count(relationship =>
+            relationship.FirstCharacterId == character.Id || relationship.SecondCharacterId == character.Id);
+        var contentKey = relatedCount == 0
+            ? "Dialog_DeleteCharacterContent"
+            : "Dialog_DeleteCharacterWithRelationships";
+        if (!await ConfirmDeleteAsync("Dialog_DeleteCharacterTitle", contentKey, character.Name, relatedCount))
         {
             return;
         }
@@ -655,13 +699,13 @@ public sealed partial class MainPage : Page
         DefaultButton = ContentDialogButton.Primary,
     };
 
-    private async Task<bool> ConfirmDeleteAsync(string titleKey, string contentKey, string name)
+    private async Task<bool> ConfirmDeleteAsync(string titleKey, string contentKey, string name, int relatedCount = 0)
     {
         var dialog = new ContentDialog
         {
             XamlRoot = XamlRoot,
             Title = Loc.Get(titleKey),
-            Content = Loc.Format(contentKey, name),
+            Content = Loc.Format(contentKey, name, relatedCount),
             PrimaryButtonText = Loc.Get("Dialog_Delete"),
             CloseButtonText = Loc.Get("Dialog_Cancel"),
             DefaultButton = ContentDialogButton.Close,

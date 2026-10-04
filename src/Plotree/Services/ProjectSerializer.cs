@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Plotree.Helpers;
 using Plotree.Models;
 
 namespace Plotree.Services;
@@ -8,7 +9,7 @@ namespace Plotree.Services;
 public static class ProjectSerializer
 {
     /// <summary>Highest file format version this build can read.</summary>
-    public const int CurrentVersion = 3;
+    public const int CurrentVersion = 4;
 
     public static readonly JsonSerializerOptions Options = new()
     {
@@ -30,6 +31,7 @@ public static class ProjectSerializer
     public static string Serialize(PlotProject project)
     {
         NormalizeCollectionsAndLegacyMetadata(project);
+        ValidateRelationships(project);
         project.Version = CurrentVersion;
         return JsonSerializer.Serialize(project, Context.PlotProject);
     }
@@ -62,10 +64,16 @@ public static class ProjectSerializer
             MigrateV2ToV3(project);
         }
 
+        if (project.Version < 4)
+        {
+            project.Relationships = [];
+        }
+
         // Be tolerant of malformed current-version documents too: null collections would make
         // every consuming view-model defensively complicated, and a stray legacy colorTag
-        // must not be written back into an otherwise version 3 file.
+        // must not be written back into an otherwise current-version file.
         NormalizeCollectionsAndLegacyMetadata(project);
+        ValidateRelationships(project);
         project.Version = CurrentVersion;
     }
 
@@ -94,7 +102,7 @@ public static class ProjectSerializer
 
     /// <summary>
     /// Restores collection invariants after deserialization and consumes the retired scalar
-    /// <c>colorTag</c> member. This is also called before writes, guaranteeing v3 output uses
+    /// <c>colorTag</c> member. This is also called before writes, guaranteeing current output uses
     /// <c>tagNames</c> exclusively.
     /// </summary>
     private static void NormalizeCollectionsAndLegacyMetadata(PlotProject project)
@@ -102,6 +110,7 @@ public static class ProjectSerializer
         project.Nodes ??= [];
         project.Edges ??= [];
         project.Characters ??= [];
+        project.Relationships ??= [];
         project.Groups ??= [];
         project.Tags ??= [];
 
@@ -122,6 +131,83 @@ public static class ProjectSerializer
         foreach (var character in project.Characters)
         {
             character.GroupIds ??= [];
+            if (character.GraphGroupId is { } legacyGroup
+                && project.Groups.Any(group => group.Id == legacyGroup)
+                && !character.GroupIds.Contains(legacyGroup))
+            {
+                character.GroupIds.Add(legacyGroup);
+            }
+        }
+
+        AssignMissingCharacterPositions(project.Characters);
+    }
+
+    /// <summary>Assigns a stable vacant grid position only to characters without one.</summary>
+    public static void AssignMissingCharacterPositions(IReadOnlyList<Character> characters)
+    {
+        var occupied = characters
+            .Where(character => character.GraphX is { } x && double.IsFinite(x)
+                && character.GraphY is { } y && double.IsFinite(y))
+            .Select(character => (X: character.GraphX!.Value, Y: character.GraphY!.Value))
+            .ToList();
+
+        var next = 0;
+        foreach (var character in characters)
+        {
+            if (character.GraphX is { } x && double.IsFinite(x)
+                && character.GraphY is { } y && double.IsFinite(y))
+            {
+                continue;
+            }
+
+            (double X, double Y) position;
+            do
+            {
+                position = ((next % 4) * 220d, (next / 4) * 180d);
+                next++;
+            }
+            while (occupied.Any(existing =>
+                Math.Abs(existing.X - position.X) < 120 && Math.Abs(existing.Y - position.Y) < 110));
+
+            character.GraphX = position.X;
+            character.GraphY = position.Y;
+            occupied.Add(position);
         }
     }
+
+    private static void ValidateRelationships(PlotProject project)
+    {
+        var ids = project.Characters.Select(character => character.Id).ToHashSet(StringComparer.Ordinal);
+        if (project.Relationships.Count > 0 && (ids.Count != project.Characters.Count
+            || project.Characters.Any(character => string.IsNullOrWhiteSpace(character.Id))))
+        {
+            throw new InvalidDataException("The project contains ambiguous character IDs.");
+        }
+        var relationshipIds = new HashSet<string>(StringComparer.Ordinal);
+        var pairs = new HashSet<(string, string)>();
+        foreach (var relationship in project.Relationships)
+        {
+            if (relationship is null || string.IsNullOrWhiteSpace(relationship.Id) || !relationshipIds.Add(relationship.Id)
+                || !ids.Contains(relationship.FirstCharacterId)
+                || !ids.Contains(relationship.SecondCharacterId)
+                || relationship.FirstCharacterId == relationship.SecondCharacterId
+                || relationship.Label is null
+                || !IsOpaqueHexColorOrEmpty(relationship.LabelBackgroundColor)
+                || !IsOpaqueHexColorOrEmpty(relationship.LabelForegroundColor))
+            {
+                throw new InvalidDataException("The project contains an invalid character relationship.");
+            }
+
+            var pair = string.CompareOrdinal(relationship.FirstCharacterId, relationship.SecondCharacterId) < 0
+                ? (relationship.FirstCharacterId, relationship.SecondCharacterId)
+                : (relationship.SecondCharacterId, relationship.FirstCharacterId);
+            if (!pairs.Add(pair))
+            {
+                throw new InvalidDataException("The project contains duplicate character relationships.");
+            }
+        }
+    }
+
+    private static bool IsOpaqueHexColorOrEmpty(string? color) =>
+        string.IsNullOrWhiteSpace(color) || (color.Trim().Length is 4 or 7 && ColorHex.Parse(color) is not null);
 }

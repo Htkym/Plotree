@@ -10,16 +10,21 @@ public static class NodeTextLayoutCalculator
     public const double BodyFontSize = 12;
     public const double BodyLineHeight = 14;
     public const double SectionSpacing = 2;
+    public const double CharacterLineHeight = 16;
+
+    public static int CardTitleLineLimit(NodeDisplayMode displayMode, double cardHeight, bool hasCharacters) =>
+        hasCharacters && cardHeight < 100 ? 1 : displayMode == NodeDisplayMode.TitleOnly ? 3 : 2;
 
     public static NodeTextLineBudget Calculate(
         string title,
         NodeDisplayMode displayMode,
         double contentWidth,
         double contentHeight,
-        bool hasBody)
+        bool hasBody,
+        int? titleLineLimit = null)
     {
-        var titleLineLimit = displayMode == NodeDisplayMode.TitleOnly ? 3 : 2;
-        var titleCapacity = Math.Min(titleLineLimit, MaximumLines(contentHeight, TitleLineHeight));
+        var limit = titleLineLimit ?? (displayMode == NodeDisplayMode.TitleOnly ? 3 : 2);
+        var titleCapacity = Math.Min(limit, MaximumLines(contentHeight, TitleLineHeight));
         hasBody = displayMode != NodeDisplayMode.TitleOnly && hasBody;
 
         if (hasBody && contentHeight >= TitleLineHeight + SectionSpacing + BodyLineHeight)

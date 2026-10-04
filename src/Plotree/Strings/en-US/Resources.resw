@@ -248,4 +248,61 @@
   <data name="Export_NoEndings" xml:space="preserve"><value>This project has no Ending nodes yet — all maximal paths are exported instead of routes.</value></data>
   <data name="Export_NoRoutes" xml:space="preserve"><value>No routes were found from the root nodes of this graph.</value></data>
   <data name="Export_Truncated" xml:space="preserve"><value>Route list truncated at {0} routes.</value></data>
+  <data name="NavPlot.Content" xml:space="preserve"><value>Plot</value></data>
+  <data name="NavRelationships.Content" xml:space="preserve"><value>Character graph</value></data>
+  <data name="Relationship_Graph" xml:space="preserve"><value>Character relationship graph</value></data>
+  <data name="Relationship_Add" xml:space="preserve"><value>Add relationship</value></data>
+  <data name="Relationship_Edit" xml:space="preserve"><value>Edit relationship</value></data>
+  <data name="Relationship_Details" xml:space="preserve"><value>Details</value></data>
+  <data name="Relationship_List" xml:space="preserve"><value>Relationships</value></data>
+  <data name="Relationship_Label" xml:space="preserve"><value>Relationship name</value></data>
+  <data name="Relationship_First" xml:space="preserve"><value>First character</value></data>
+  <data name="Relationship_Second" xml:space="preserve"><value>Second character</value></data>
+  <data name="Relationship_Groups" xml:space="preserve"><value>Groups: {0}</value></data>
+  <data name="Relationship_Item" xml:space="preserve"><value>{0} — {1}: {2}</value></data>
+  <data name="Relationship_Pair" xml:space="preserve"><value>{0} — {1}</value></data>
+  <data name="Relationship_EmptyCharacters" xml:space="preserve"><value>Add characters in Plot to start the character graph.</value></data>
+  <data name="Relationship_OneCharacter" xml:space="preserve"><value>Add one more character to create a relationship.</value></data>
+  <data name="Relationship_EmptyRelationships" xml:space="preserve"><value>No relationships yet.</value></data>
+  <data name="Relationship_SelectHint" xml:space="preserve"><value>Select a character or relationship.</value></data>
+  <data name="Relationship_SelectTwo" xml:space="preserve"><value>Select two characters.</value></data>
+  <data name="Relationship_SelfError" xml:space="preserve"><value>A character cannot have a relationship with themselves.</value></data>
+  <data name="Relationship_DuplicateError" xml:space="preserve"><value>These characters already have a relationship.</value></data>
+  <data name="Relationship_DeleteTitle" xml:space="preserve"><value>Delete relationship?</value></data>
+  <data name="Dialog_DeleteCharacterWithRelationships" xml:space="preserve"><value>Delete "{0}" and {1} connected relationships?</value></data>
+  <data name="Graph_ZoomIn" xml:space="preserve"><value>Zoom in</value></data>
+  <data name="Graph_ZoomOut" xml:space="preserve"><value>Zoom out</value></data>
+  <data name="Graph_Fit" xml:space="preserve"><value>Fit all</value></data>
+  <data name="Graph_Groups" xml:space="preserve"><value>Groups</value></data>
+  <data name="Graph_CreateGroupFromSelection" xml:space="preserve"><value>Create group from selection</value></data>
+  <data name="Graph_GroupSelection" xml:space="preserve"><value>Add selected characters to this group</value></data>
+  <data name="Graph_RenameGroup" xml:space="preserve"><value>Rename group</value></data>
+  <data name="Graph_ChangeGroupColor" xml:space="preserve"><value>Change background color</value></data>
+  <data name="Graph_UngroupSelection" xml:space="preserve"><value>Remove selection from all groups</value></data>
+  <data name="Graph_GroupName" xml:space="preserve"><value>Group name</value></data>
+  <data name="Graph_GroupColor" xml:space="preserve"><value>Background color (#RRGGBB)</value></data>
+  <data name="Graph_CreateGroupTitle" xml:space="preserve"><value>Create character group</value></data>
+  <data name="Graph_GroupInputError" xml:space="preserve"><value>Enter a unique group name and an opaque color in #RRGGBB format.</value></data>
+  <data name="Graph_ColorInputError" xml:space="preserve"><value>Enter a color in #RRGGBB format.</value></data>
+  <data name="Graph_GroupCluster" xml:space="preserve"><value>{0} group</value></data>
+  <data name="Graph_SelectedCount" xml:space="preserve"><value>{0} selected</value></data>
+  <data name="Relationship_LabelBackgroundColor" xml:space="preserve"><value>Label background color (#RRGGBB)</value></data>
+  <data name="Relationship_LabelForegroundColor" xml:space="preserve"><value>Label text color (#RRGGBB)</value></data>
+  <data name="Relationship_ColorError" xml:space="preserve"><value>Colors must be opaque values in #RRGGBB format.</value></data>
+  <data name="Relationship_ConnectHandle" xml:space="preserve"><value>Drag to another character to create a line labeled “Relationship name”. Press Enter to open the editor.</value></data>
+  <data name="Character_ChangeAvatar" xml:space="preserve"><value>Choose image</value></data>
+  <data name="Character_RemoveAvatar" xml:space="preserve"><value>Remove image</value></data>
+  <data name="Character_ImageLoadError" xml:space="preserve"><value>The PNG or JPEG image could not be loaded.</value></data>
+  <data name="Character_AvatarPreview" xml:space="preserve"><value>Character image preview</value></data>
+  <data name="Help_CharacterGraphGestures" xml:space="preserve"><value>Select two characters with Ctrl-click or a marquee to create a line labeled “Relationship name”. Middle-drag or Space-drag to pan. Drag a connector handle to another character to create a relationship too.</value></data>
+  <data name="Relationship_DefaultLabel" xml:space="preserve"><value>Relationship name</value></data>
+  <data name="Graph_GroupVisibility" xml:space="preserve"><value>Group visibility</value></data>
+  <data name="NodeCharactersDisplayCombo.Header" xml:space="preserve"><value>Characters on card</value></data>
+  <data name="NodeCharactersDefault.Content" xml:space="preserve"><value>Use document default</value></data>
+  <data name="NodeCharactersShow.Content" xml:space="preserve"><value>Show characters</value></data>
+  <data name="NodeCharactersHide.Content" xml:space="preserve"><value>Hide characters</value></data>
+  <data name="TypeShowCharacters.Content" xml:space="preserve"><value>Show characters on cards</value></data>
+  <data name="Detail_CharacterLine" xml:space="preserve"><value>• {0}</value></data>
+  <data name="Detail_CharacterLineWithGroups" xml:space="preserve"><value>• {0} ({1})</value></data>
+  <data name="Detail_CharacterGroupSeparator" xml:space="preserve"><value>, </value></data>
 </root>

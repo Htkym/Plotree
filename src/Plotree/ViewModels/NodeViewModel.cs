@@ -168,6 +168,9 @@ public partial class NodeViewModel : ObservableObject
     public double EffectiveWidth => Appearance.Width;
     public double EffectiveHeight => Appearance.Height;
     public NodeDisplayMode EffectiveDisplayMode => Appearance.DisplayMode;
+    public bool EffectiveShowCharacters => Appearance.ShowCharacters;
+    public string CharacterNames => CharacterSummaryFormatter.CardNames(_owner.Project, Model.CharacterIds);
+    public void RefreshCharacters() => OnPropertyChanged(nameof(CharacterNames));
 
     /// <summary>Notifies all bindings that consume the inherited effective appearance.</summary>
     public void RefreshEffectiveAppearance()
@@ -177,6 +180,7 @@ public partial class NodeViewModel : ObservableObject
         OnPropertyChanged(nameof(EffectiveWidth));
         OnPropertyChanged(nameof(EffectiveHeight));
         OnPropertyChanged(nameof(EffectiveDisplayMode));
+        OnPropertyChanged(nameof(EffectiveShowCharacters));
     }
 
     // ----- Per-node geometry and size override -----

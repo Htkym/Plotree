@@ -14,4 +14,17 @@ public class Character
 
     /// <summary>Ids of <see cref="CharacterGroup"/>s this character belongs to.</summary>
     public List<string> GroupIds { get; set; } = [];
+
+    /// <summary>Persistent position in the character relationship graph.</summary>
+    public double? GraphX { get; set; }
+
+    public double? GraphY { get; set; }
+
+    /// <summary>Legacy graph group. GroupIds is the shared membership list used by both tabs.</summary>
+    public string? GraphGroupId { get; set; }
+
+    /// <summary>PNG/JPEG image bytes encoded as Base64 for portable project files.</summary>
+    public string? AvatarData { get; set; }
+
+    public string? AvatarContentType { get; set; }
 }

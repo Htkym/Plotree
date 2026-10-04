@@ -70,7 +70,8 @@ public static class SvgExportService
                 appearance,
                 node.X,
                 node.Y,
-                ResolveTagColors(project, node.TagNames));
+                ResolveTagColors(project, node.TagNames),
+                CharacterSummaryFormatter.CardNames(project, node.CharacterIds));
 
             if (!nodeById.TryAdd(node.Id, info))
             {
@@ -271,13 +272,16 @@ public static class SvgExportService
         var contentWidth = appearance.Width - AccentWidth - 16;
         var contentY = node.Y + HeaderHeight + TextTopMargin;
         var contentHeight = Math.Max(0, appearance.Height - HeaderHeight - TextTopMargin - TextBottomMargin);
+        var characterHeight = appearance.ShowCharacters && node.CharacterNames.Length > 0
+            ? NodeTextLayoutCalculator.CharacterLineHeight : 0;
         var textLayout = CreateNodeTextLayout(
             DisplayTitle(node.Model),
             node.Model.Body,
             appearance.DisplayMode,
             contentWidth,
             contentY,
-            contentHeight);
+            Math.Max(0, contentHeight - characterHeight),
+            NodeTextLayoutCalculator.CardTitleLineLimit(appearance.DisplayMode, appearance.Height, characterHeight > 0));
         var clipId = $"node-text-clip-{nodeIndex}";
 
         writer.WriteStartElement("clipPath");
@@ -296,11 +300,19 @@ public static class SvgExportService
             NodeTextLayoutCalculator.TitleFontSize,
             NodeTextLayoutCalculator.TitleLineHeight,
             bold: true);
+        if (characterHeight > 0)
+        {
+            WriteTextLines(writer, SvgTextWrapper.Wrap(node.CharacterNames, contentWidth, 1,
+                NodeTextLayoutCalculator.BodyFontSize), contentX,
+                contentY + textLayout.TitleLines.Count * NodeTextLayoutCalculator.TitleLineHeight
+                    + NodeTextLayoutCalculator.BodyFontSize,
+                "#616161", NodeTextLayoutCalculator.BodyFontSize, NodeTextLayoutCalculator.CharacterLineHeight, bold: false);
+        }
         WriteTextLines(
             writer,
             textLayout.BodyLines,
             contentX,
-            textLayout.BodyFirstBaseline,
+            textLayout.BodyFirstBaseline + characterHeight,
             "#616161",
             NodeTextLayoutCalculator.BodyFontSize,
             NodeTextLayoutCalculator.BodyLineHeight,
@@ -434,7 +446,8 @@ public static class SvgExportService
         NodeDisplayMode displayMode,
         double contentWidth,
         double contentY,
-        double contentHeight)
+        double contentHeight,
+        int? titleLineLimit = null)
     {
         var hasBody = displayMode != NodeDisplayMode.TitleOnly && !string.IsNullOrWhiteSpace(body);
         var budget = NodeTextLayoutCalculator.Calculate(
@@ -442,7 +455,7 @@ public static class SvgExportService
             displayMode,
             contentWidth,
             contentHeight,
-            hasBody);
+            hasBody, titleLineLimit);
         var titleLines = SvgTextWrapper.Wrap(
             title,
             contentWidth,
@@ -645,7 +658,8 @@ public static class SvgExportService
         ResolvedAppearance Appearance,
         double X,
         double Y,
-        IReadOnlyList<string> AccentColors);
+        IReadOnlyList<string> AccentColors,
+        string CharacterNames);
 
     private readonly record struct EdgeInfo(
         Point Start,
