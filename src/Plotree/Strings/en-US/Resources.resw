@@ -275,7 +275,7 @@
   <data name="Graph_Fit" xml:space="preserve"><value>Fit all</value></data>
   <data name="Graph_Groups" xml:space="preserve"><value>Groups</value></data>
   <data name="Graph_CreateGroupFromSelection" xml:space="preserve"><value>Create group from selection</value></data>
-  <data name="Graph_GroupSelection" xml:space="preserve"><value>Move selected characters here</value></data>
+  <data name="Graph_GroupSelection" xml:space="preserve"><value>Add selected characters to this group</value></data>
   <data name="Graph_RenameGroup" xml:space="preserve"><value>Rename group</value></data>
   <data name="Graph_ChangeGroupColor" xml:space="preserve"><value>Change background color</value></data>
   <data name="Graph_UngroupSelection" xml:space="preserve"><value>Remove selection from all groups</value></data>
@@ -302,4 +302,7 @@
   <data name="NodeCharactersShow.Content" xml:space="preserve"><value>Show characters</value></data>
   <data name="NodeCharactersHide.Content" xml:space="preserve"><value>Hide characters</value></data>
   <data name="TypeShowCharacters.Content" xml:space="preserve"><value>Show characters on cards</value></data>
+  <data name="Detail_CharacterLine" xml:space="preserve"><value>• {0}</value></data>
+  <data name="Detail_CharacterLineWithGroups" xml:space="preserve"><value>• {0} ({1})</value></data>
+  <data name="Detail_CharacterGroupSeparator" xml:space="preserve"><value>, </value></data>
 </root>

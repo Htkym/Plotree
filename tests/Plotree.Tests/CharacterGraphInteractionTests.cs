@@ -1,3 +1,4 @@
+using Windows.System;
 using Plotree.Models;
 using Plotree.Services;
 
@@ -261,13 +262,162 @@ public sealed class CharacterGraphInteractionTests
                 "Distant members must retain their separate backgrounds.");
             for (var a = 0; a < labels.Count; a++)
             {
-                Assert.AreEqual(regions[a].X + 12, labels[a].X);
-                Assert.AreEqual(regions[a].Y + 8, labels[a].Y);
+                Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, labels[a].Width);
+                Assert.IsGreaterThanOrEqualTo(regions[a].X + 12, labels[a].X);
+                Assert.IsLessThanOrEqualTo(regions[a].X + regions[a].Width - 12, labels[a].X + labels[a].Width);
+                Assert.IsLessThanOrEqualTo(regions[a].Y + 8, labels[a].Y,
+                    "Crowded names may use an upper row but must stay horizontally attached to their background.");
+                Assert.IsTrue(bounds.Any(bound => Contains(bound,
+                    new(labels[a].X, labels[a].Y, labels[a].Width, labels[a].Height))));
                 Assert.IsTrue(bounds.Any(bound => Contains(bound,
                     new(regions[a].X, regions[a].Y, regions[a].Width, regions[a].Height))));
                 for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(labels[a], labels[b]));
             }
         }
+    }
+
+    [TestMethod]
+    [DataRow(8)]
+    [DataRow(37)]
+    [DataRow(64)]
+    public void CrowdedIndependentGroups_KeepMinimumClickWidthAndFitSelectionIndependentCanvas(int count)
+    {
+        var project = new PlotProject();
+        for (var index = 0; index < count; index++)
+        {
+            project.Groups.Add(new CharacterGroup { Id = $"g{index}" });
+            project.Characters.Add(new Character { Id = $"c{index}", GraphX = 0, GraphY = 0, GroupIds = [$"g{index}"] });
+        }
+        var positions = project.Characters.Select(character => (character.GraphX, character.GraphY)).ToArray();
+        var bounds = CharacterGraphLayout.CalculateCanvasBounds(project);
+        foreach (var selected in new[] { null, "g0", $"g{count / 2}", $"g{count - 1}" })
+        {
+            var regions = CharacterGraphLayout.Calculate(project, selected);
+            var labels = CharacterGraphLayout.CalculateLabels(regions);
+            Assert.HasCount(count, labels);
+            Assert.HasCount(count, labels.Select(label => label.GroupId).Distinct().ToArray());
+            if (selected is not null)
+            {
+                Assert.AreEqual(selected, labels.Last().GroupId);
+                Assert.AreEqual(labels.Max(label => label.Y), labels.Last().Y);
+            }
+            for (var a = 0; a < labels.Count; a++)
+            {
+                var label = labels[a];
+                Assert.IsTrue(double.IsFinite(label.Width));
+                Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
+                Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
+                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+            }
+            CollectionAssert.AreEqual(positions,
+                project.Characters.Select(character => (character.GraphX, character.GraphY)).ToArray());
+        }
+    }
+
+    [TestMethod]
+    public void OverflowRowsReachingAnotherHeader_StayInsideCanvasForEverySelectedGroup()
+    {
+        var project = new PlotProject();
+        for (var index = 0; index < 38; index++)
+        {
+            project.Groups.Add(new CharacterGroup { Id = $"g{index}" });
+            project.Characters.Add(new Character { GraphX = 0, GraphY = index == 37 ? -300 : 0, GroupIds = [$"g{index}"] });
+        }
+        var bounds = CharacterGraphLayout.CalculateCanvasBounds(project);
+        foreach (var selected in project.Groups.Select(group => group.Id))
+        {
+            var labels = CharacterGraphLayout.CalculateLabels(CharacterGraphLayout.Calculate(project, selected));
+            for (var a = 0; a < labels.Count; a++)
+            {
+                var label = labels[a];
+                Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
+                Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
+                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+            }
+        }
+    }
+
+    [TestMethod]
+    public void StaggeredCrowdedHeaders_KeepUsableTargetsInsideTheScrollableCanvas()
+    {
+        var project = new PlotProject();
+        for (var index = 0; index < 24; index++)
+        {
+            project.Groups.Add(new CharacterGroup { Id = $"g{index}" });
+            project.Characters.Add(new Character { GraphX = index % 3 * 13,
+                GraphY = index % 5 * 17, GroupIds = [$"g{index}"] });
+        }
+        var bounds = CharacterGraphLayout.CalculateCanvasBounds(project);
+        foreach (var selected in project.Groups.Select(group => group.Id))
+        {
+            var labels = CharacterGraphLayout.CalculateLabels(CharacterGraphLayout.Calculate(project, selected));
+            for (var a = 0; a < labels.Count; a++)
+            {
+                var label = labels[a];
+                Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
+                Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
+                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow(VirtualKey.Enter)]
+    [DataRow(VirtualKey.Space)]
+    public void KeyboardClicks_SelectCharactersAndClearPendingPointerSuppression(VirtualKey key)
+    {
+        var activation = new CharacterNodeActivation();
+        var selected = new HashSet<string> { "a", "b" };
+        activation.BeginPointer("b");
+        activation.PrepareKeyboard(key);
+        Assert.IsTrue(activation.ShouldSelectFromClick("b"));
+        CharacterGraphInteraction.SelectCharacter(selected, "b", control: false, shift: false);
+        CollectionAssert.AreEquivalent(new[] { "b" }, selected.ToArray());
+    }
+
+    [TestMethod]
+    public void NativePointerClick_DoesNotToggleOrCreateASelectedPairTwice()
+    {
+        var activation = new CharacterNodeActivation();
+        var selected = new HashSet<string> { "a" };
+        activation.BeginPointer("b");
+        CharacterGraphInteraction.SelectCharacter(selected, "b", control: true, shift: false);
+        if (activation.ShouldSelectFromClick("b"))
+            CharacterGraphInteraction.SelectCharacter(selected, "b", control: true, shift: false);
+        CollectionAssert.AreEquivalent(new[] { "a", "b" }, selected.ToArray());
+        var complete = activation.CompletePointer();
+        Assert.IsFalse(activation.ShouldSelectFromClick("b"));
+        complete();
+        Assert.IsTrue(activation.ShouldSelectFromClick("b"), "A later automation invocation must work after release.");
+    }
+
+    [TestMethod]
+    public void OldPointerCleanup_DoesNotClearANewPointerOrSuppressAutomationAfterUnload()
+    {
+        var activation = new CharacterNodeActivation();
+        activation.BeginPointer("a");
+        var oldComplete = activation.CompletePointer();
+        activation.BeginPointer("b");
+        oldComplete();
+        Assert.IsFalse(activation.ShouldSelectFromClick("b"));
+        activation.PrepareKeyboard(VirtualKey.A);
+        Assert.IsFalse(activation.ShouldSelectFromClick("b"));
+        activation.Reset();
+        Assert.IsTrue(activation.ShouldSelectFromClick("b"));
+        var selected = new HashSet<string> { "a" };
+        CharacterGraphInteraction.SelectCharacter(selected, "b", control: false, shift: false);
+        CollectionAssert.AreEquivalent(new[] { "b" }, selected.ToArray());
+    }
+
+    [TestMethod]
+    public void PointerSelection_PreservesASelectedDragSetAndShiftAddsWithoutToggling()
+    {
+        var selected = new HashSet<string> { "a", "b" };
+        CharacterGraphInteraction.SelectCharacter(selected, "a", control: false, shift: false, preserveExistingSelection: true);
+        CollectionAssert.AreEquivalent(new[] { "a", "b" }, selected.ToArray());
+        CharacterGraphInteraction.SelectCharacter(selected, "c", control: false, shift: true);
+        CharacterGraphInteraction.SelectCharacter(selected, "c", control: false, shift: true);
+        CollectionAssert.AreEquivalent(new[] { "a", "b", "c" }, selected.ToArray());
     }
 
     private static bool Contains(CanvasNodeBounds outer, CanvasNodeBounds inner) =>

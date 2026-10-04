@@ -71,7 +71,7 @@ public sealed class CharacterGroupIsolationTests
     }
 
     [TestMethod]
-    public void CoincidentIndependentGroups_KeepSeparateNameTargetsInsideTheirOwnHeaders()
+    public void CoincidentIndependentGroups_KeepUsableSeparateNameTargetsWithoutMovingBackgrounds()
     {
         var project = new PlotProject();
         for (var index = 0; index < 8; index++)
@@ -85,8 +85,12 @@ public sealed class CharacterGroupIsolationTests
         foreach (var label in labels)
         {
             var region = regions[label.RegionIndex];
-            Assert.IsGreaterThan(0d, label.Width);
-            Assert.IsTrue(Contains(region, new(label.X, label.Y, label.Width, label.Height)));
+            Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
+            Assert.IsGreaterThanOrEqualTo(region.X + 12, label.X);
+            Assert.IsLessThanOrEqualTo(region.X + region.Width - 12, label.X + label.Width);
+            Assert.IsLessThanOrEqualTo(region.Y + 8 + CharacterGraphLayout.GroupLabelHeight, label.Y + label.Height);
+            Assert.AreEqual(152d, region.Width, "Labels must not enlarge their independent backgrounds.");
+            Assert.AreEqual(178d, region.Height);
         }
     }
 

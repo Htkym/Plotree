@@ -34,6 +34,7 @@ public sealed partial class CharacterGraph : UserControl
     private readonly Dictionary<string, Border> _selectionRings = [];
     private readonly Dictionary<string, (string Data, BitmapImage Image)> _avatarImages = [];
     private readonly HashSet<string> _selectedCharacterIds = new(StringComparer.Ordinal);
+    private readonly CharacterNodeActivation _characterActivation = new();
     private readonly Dictionary<string, (double X, double Y)> _dragOrigins = new(StringComparer.Ordinal);
     private readonly HashSet<string> _marqueeSelectionOrigin = new(StringComparer.Ordinal);
     private MainPageViewModel? _viewModel;
@@ -202,6 +203,7 @@ public sealed partial class CharacterGraph : UserControl
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _characterActivation.Reset();
         _renderer?.SetLoaded(false);
         var commitMove = _movingCharacterId is not null && _characterDragStarted;
         ResetGestureState();
@@ -319,6 +321,8 @@ public sealed partial class CharacterGraph : UserControl
             icon.Content = new FontIcon { Glyph = "\uE77B", FontSize = 28 };
             icon.AddHandler(UIElement.PointerPressedEvent,
                 new PointerEventHandler(OnNodePressed), handledEventsToo: true);
+            icon.PreviewKeyDown += (_, e) => _characterActivation.PrepareKeyboard(e.Key);
+            icon.Click += OnNodeClick;
             AutomationProperties.SetName(icon, character.Name);
             AutomationProperties.SetAutomationId(icon, $"CharacterNode_{character.Id}");
             var name = new TextBlock
@@ -450,7 +454,7 @@ public sealed partial class CharacterGraph : UserControl
                 Content = new TextBlock { Text = group.Name, TextTrimming = TextTrimming.CharacterEllipsis },
                 Style = (Style)Resources["RelationshipLabelStyle"],
                 Padding = new Thickness(6, 0, 6, 0),
-                Width = placement.Width, Height = placement.Height, MinWidth = 0, MinHeight = 0,
+                Width = placement.Width, Height = placement.Height, MinWidth = CharacterGraphLayout.MinimumGroupLabelWidth, MinHeight = 0,
                 BorderThickness = new Thickness(group.Id == _viewModel.SelectedGraphGroupId ? 2 : 1),
             };
             name.Click += OnGroupLabelClick;
@@ -579,6 +583,28 @@ public sealed partial class CharacterGraph : UserControl
         foreach (var relationship in _viewModel.Project.Relationships) PositionRelationship(relationship);
     }
 
+    private void OnNodeClick(object sender, RoutedEventArgs e)
+    {
+        if (_viewModel is null || sender is not Button { Tag: string id }
+            || !_characterActivation.ShouldSelectFromClick(id)) return;
+        var control = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
+        var shift = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down);
+        SelectCharacter(id, control, shift);
+    }
+
+    private void SelectCharacter(string id, bool control, bool shift, bool preserveExistingSelection = false)
+    {
+        _viewModel!.SelectGraphGroup(null);
+        RefreshGroupBackgrounds();
+        CharacterGraphInteraction.SelectCharacter(_selectedCharacterIds, id, control, shift, preserveExistingSelection);
+        _selectedRelationshipId = null;
+        _editing = false;
+        RefreshDetails();
+        RefreshSelection();
+        BuildGroupsFlyout();
+        if (control || shift) SaveSelectedPairIfNew();
+    }
+
     private void OnNodePressed(object sender, PointerRoutedEventArgs e)
     {
         if (_viewModel is null || sender is not Button { Tag: string id }
@@ -587,48 +613,16 @@ public sealed partial class CharacterGraph : UserControl
             return;
         }
 
-        _viewModel.SelectGraphGroup(null);
-        RefreshGroupBackgrounds();
+        _characterActivation.BeginPointer(id);
         ((Button)sender).Focus(FocusState.Pointer);
-        if (e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control))
+        var control = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control);
+        var shift = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift);
+        SelectCharacter(id, control, shift, preserveExistingSelection: true);
+        if (control || shift)
         {
-            if (!_selectedCharacterIds.Add(id))
-            {
-                _selectedCharacterIds.Remove(id);
-            }
-            _selectedRelationshipId = null;
-            _editing = false;
-            RefreshSelection();
-            RefreshDetails();
-            BuildGroupsFlyout();
-            SaveSelectedPairIfNew();
             e.Handled = true;
             return;
         }
-
-        if (e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift))
-        {
-            _selectedCharacterIds.Add(id);
-            _selectedRelationshipId = null;
-            _editing = false;
-            RefreshSelection();
-            RefreshDetails();
-            BuildGroupsFlyout();
-            SaveSelectedPairIfNew();
-            e.Handled = true;
-            return;
-        }
-
-        if (!_selectedCharacterIds.Contains(id))
-        {
-            _selectedCharacterIds.Clear();
-            _selectedCharacterIds.Add(id);
-        }
-        _selectedRelationshipId = null;
-        _editing = false;
-        RefreshDetails();
-        RefreshSelection();
-        BuildGroupsFlyout();
 
         _renderer?.SetSuspended(true);
         _movingCharacterId = id;
@@ -796,6 +790,9 @@ public sealed partial class CharacterGraph : UserControl
 
     private void CompletePointerGesture(PointerRoutedEventArgs e, bool completed)
     {
+        // Leave the gate in place until all native Click callbacks in this release event finish.
+        var completeActivation = _characterActivation.CompletePointer();
+        DispatcherQueue.TryEnqueue(() => completeActivation());
         if (_movingCharacterId is null && _connectingFromId is null && !_panning && !_marqueeSelecting) return;
         var sourceId = _connectingFromId;
         var preview = _connectionPreview;

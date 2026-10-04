@@ -1,3 +1,5 @@
+using Windows.System;
+
 namespace Plotree.Services;
 
 public readonly record struct GraphLineSegment(double X1, double Y1, double X2, double Y2);
@@ -7,6 +9,21 @@ public readonly record struct RelationshipGeometry(GraphLineSegment Visible, Gra
 /// <summary>Rendering layers and screen-sized relationship hit targets, independent of visible stroke width.</summary>
 public static class CharacterGraphInteraction
 {
+    public static void SelectCharacter(ISet<string> selected, string id, bool control, bool shift,
+        bool preserveExistingSelection = false)
+    {
+        if (control)
+        {
+            if (!selected.Add(id)) selected.Remove(id);
+        }
+        else if (shift) selected.Add(id);
+        else if (!preserveExistingSelection || !selected.Contains(id))
+        {
+            selected.Clear();
+            selected.Add(id);
+        }
+    }
+
     public const int BackgroundLayer = 0;
     public const int GroupNameLayer = 1;
     public const int CharacterLayer = 2;
@@ -61,5 +78,37 @@ public static class CharacterGraphInteraction
         var ox = x - line.X1 - t * dx;
         var oy = y - line.Y1 - t * dy;
         return ox * ox + oy * oy <= geometry.HitThickness * geometry.HitThickness / 4;
+    }
+}
+
+/// <summary>Native Button clicks supplement keyboard/automation without repeating pointer selection.</summary>
+public sealed class CharacterNodeActivation
+{
+    private string? _pointerCharacterId;
+    private int _generation;
+
+    public void BeginPointer(string id)
+    {
+        _pointerCharacterId = id;
+        _generation++;
+    }
+
+    public void PrepareKeyboard(VirtualKey key)
+    {
+        if (key is VirtualKey.Enter or VirtualKey.Space) Reset();
+    }
+
+    public bool ShouldSelectFromClick(string id) => id != _pointerCharacterId;
+
+    public Action CompletePointer()
+    {
+        var generation = _generation;
+        return () => { if (generation == _generation) Reset(); };
+    }
+
+    public void Reset()
+    {
+        _pointerCharacterId = null;
+        _generation++;
     }
 }

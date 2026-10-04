@@ -275,7 +275,7 @@
   <data name="Graph_Fit" xml:space="preserve"><value>全体表示</value></data>
   <data name="Graph_Groups" xml:space="preserve"><value>グループ分け</value></data>
   <data name="Graph_CreateGroupFromSelection" xml:space="preserve"><value>選択した人物でグループを作成</value></data>
-  <data name="Graph_GroupSelection" xml:space="preserve"><value>選択中の人物をこのグループにまとめる</value></data>
+  <data name="Graph_GroupSelection" xml:space="preserve"><value>選択中の人物をこのグループに追加</value></data>
   <data name="Graph_RenameGroup" xml:space="preserve"><value>グループ名を変更</value></data>
   <data name="Graph_ChangeGroupColor" xml:space="preserve"><value>背景色を変更</value></data>
   <data name="Graph_UngroupSelection" xml:space="preserve"><value>選択した人物をすべてのグループから外す</value></data>
@@ -302,4 +302,7 @@
   <data name="NodeCharactersShow.Content" xml:space="preserve"><value>人物を表示</value></data>
   <data name="NodeCharactersHide.Content" xml:space="preserve"><value>人物を非表示</value></data>
   <data name="TypeShowCharacters.Content" xml:space="preserve"><value>カードに人物を表示</value></data>
+  <data name="Detail_CharacterLine" xml:space="preserve"><value>・{0}</value></data>
+  <data name="Detail_CharacterLineWithGroups" xml:space="preserve"><value>・{0}（{1}）</value></data>
+  <data name="Detail_CharacterGroupSeparator" xml:space="preserve"><value>, </value></data>
 </root>

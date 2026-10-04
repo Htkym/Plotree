@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Xml.Linq;
 using Plotree.Models;
 using Plotree.Services;
 using Plotree.ViewModels;
@@ -182,7 +184,7 @@ public sealed class CharacterGraphTests
         project.Groups[0].Name = "グループ1"; project.Groups[1].Name = "グループ2";
         project.Characters.Add(new Character { Id = "b", Name = "人物B" });
         Assert.AreEqual("・人物A（グループ1, グループ2）\n・人物B",
-            CharacterSummaryFormatter.DetailLines(project, ["a", "missing", "a", "b"]));
+            CharacterSummaryFormatter.DetailLines(project, ["a", "missing", "a", "b"], key => ReadResources("ja-JP")[key]));
         Assert.AreEqual("人物A, 人物B", CharacterSummaryFormatter.CardNames(project, ["a", "b", "a"]));
     }
 
@@ -252,6 +254,61 @@ public sealed class CharacterGraphTests
             }
         }
     }
+
+    [TestMethod]
+    [DataRow("en-US", "ja-JP", "• Alice (Team one, Team two)\n• Bob")]
+    [DataRow("ja-JP", "en-US", "・Alice（Team one, Team two）\n・Bob")]
+    public void DetailLines_UseActiveResourcePunctuationIndependentlyOfThreadCulture(
+        string resourceLanguage, string threadCulture, string expected)
+    {
+        var previousCulture = CultureInfo.CurrentCulture;
+        var previousUiCulture = CultureInfo.CurrentUICulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(threadCulture);
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(threadCulture);
+            var project = SharedMemberProject(); project.Characters[0].Name = "Alice";
+            project.Groups[0].Name = "Team one"; project.Groups[1].Name = "Team two";
+            project.Characters[0].GroupIds.Add("first");
+            project.Characters.Add(new Character { Id = "b", Name = "Bob" });
+            var resources = ReadResources(resourceLanguage);
+            Assert.AreEqual(expected, CharacterSummaryFormatter.DetailLines(project,
+                ["a", "missing", "a", "b"], key => resources[key]));
+            Assert.AreEqual("Alice, Bob", CharacterSummaryFormatter.CardNames(project, ["a", "b", "a"]));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = previousCulture;
+            CultureInfo.CurrentUICulture = previousUiCulture;
+        }
+    }
+
+    [TestMethod]
+    public void MissingDetailResources_UseReadableEnglishFallback()
+    {
+        var project = SharedMemberProject(); project.Characters[0].Name = "Alice";
+        project.Groups[0].Name = "Team"; project.Groups[1].Name = string.Empty;
+        Assert.AreEqual("• Alice (Team)", CharacterSummaryFormatter.DetailLines(project, ["a"], key => key));
+    }
+
+    [TestMethod]
+    public void GroupAssignmentResources_DescribeAddingRatherThanMovingMembership()
+    {
+        Assert.AreEqual("Add selected characters to this group", ReadResources("en-US")["Graph_GroupSelection"]);
+        Assert.AreEqual("選択中の人物をこのグループに追加", ReadResources("ja-JP")["Graph_GroupSelection"]);
+        var vm = new MainPageViewModel(); vm.AddCharacter("Alice");
+        var id = vm.Characters.Single().Id;
+        var original = vm.CreateGraphGroup("First", "#336699", [id])!;
+        vm.AddCharacter("Bob");
+        var additional = vm.CreateGraphGroup("Second", "#339966", [vm.Characters.Last().Id])!;
+        vm.AssignCharactersToGraphGroup([id], additional.Id);
+        CollectionAssert.AreEquivalent(new[] { original.Id, additional.Id }, vm.Project.Characters.Single(character => character.Id == id).GroupIds);
+    }
+
+    private static Dictionary<string, string> ReadResources(string language) =>
+        XDocument.Load(Path.Combine(AppContext.BaseDirectory, "TestData", language + ".Resources.xml"))
+            .Root!.Elements("data").ToDictionary(element => element.Attribute("name")!.Value,
+                element => element.Element("value")!.Value);
 
     private static PlotProject SharedMemberProject() => new()
     {
