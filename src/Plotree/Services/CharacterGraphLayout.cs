@@ -72,9 +72,13 @@ public static class CharacterGraphLayout
                 var rank = Array.FindIndex(localOrder, candidate => candidate.Id == group.Id);
                 var horizontalReserve = (localOrder.Length - 1) * StackStepX;
                 var verticalReserve = (localOrder.Length - 1) * StackStepY;
-                regions.Add(raw with { X = raw.X - rank * StackStepX,
+                regions.Add(raw with
+                {
+                    X = raw.X - rank * StackStepX,
                     Y = raw.Y - verticalReserve + rank * StackStepY,
-                    Width = raw.Width + horizontalReserve, Height = raw.Height + verticalReserve });
+                    Width = raw.Width + horizontalReserve,
+                    Height = raw.Height + verticalReserve
+                });
                 bounds.Add(new(raw.X - horizontalReserve, raw.Y - verticalReserve,
                     raw.Width + horizontalReserve * 2, raw.Height + verticalReserve * 2));
                 headers.Add(new(raw.X - horizontalReserve + 12, raw.Y - verticalReserve + 8,
@@ -100,7 +104,8 @@ public static class CharacterGraphLayout
             {
                 var previous = labels[previousIndex];
                 if (!Overlaps(label.X, label.Y, label.Width, label.Height,
-                    previous.X, previous.Y, previous.Width, previous.Height)) continue;
+                    previous.X, previous.Y, previous.Width, previous.Height))
+                    continue;
                 if (label.X + GroupLabelGap + MinimumGroupLabelWidth <= previous.X)
                     label = label with { Width = previous.X - label.X - GroupLabelGap };
                 else if (previous.X + GroupLabelGap + MinimumGroupLabelWidth <= label.X)
@@ -161,11 +166,15 @@ public static class CharacterGraphLayout
             for (var a = 0; a < headers.Count; a++)
                 for (var b = a + 1; b < headers.Count; b++)
                 {
-                    var firstRoot = Root(a); var secondRoot = Root(b);
-                    if (firstRoot == secondRoot) continue;
-                    var first = Envelope(a); var second = Envelope(b);
+                    var firstRoot = Root(a);
+                    var secondRoot = Root(b);
+                    if (firstRoot == secondRoot)
+                        continue;
+                    var first = Envelope(a);
+                    var second = Envelope(b);
                     if (!Overlaps(first.X, first.Y, first.Width, first.Height,
-                        second.X, second.Y, second.Width, second.Height)) continue;
+                        second.X, second.Y, second.Width, second.Height))
+                        continue;
                     parents[secondRoot] = firstRoot;
                     counts[firstRoot] += counts[secondRoot];
                     minimumY[firstRoot] = Math.Min(minimumY[firstRoot], minimumY[secondRoot]);

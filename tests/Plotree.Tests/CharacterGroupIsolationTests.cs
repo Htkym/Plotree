@@ -44,9 +44,11 @@ public sealed class CharacterGroupIsolationTests
             new Character { Id = "CD", GraphX = 4000, GraphY = 0, GroupIds = ["C", "D"] }];
         foreach (var selected in new string?[] { null, "A", "B", "C", "D" })
         {
-            project.Characters[1].GraphX = 2000; project.Characters[2].GraphX = 4000;
+            project.Characters[1].GraphX = 2000;
+            project.Characters[2].GraphX = 4000;
             var before = CharacterGraphLayout.Calculate(project, selected).Single(region => region.GroupId == "B");
-            project.Characters[1].GraphX = -180; project.Characters[2].GraphX = -360;
+            project.Characters[1].GraphX = -180;
+            project.Characters[2].GraphX = -360;
             var regions = CharacterGraphLayout.Calculate(project, selected);
             Assert.AreEqual(before, regions.Single(region => region.GroupId == "B"));
             Assert.IsFalse(Contains(before, new(-180, 0, 120, 110)));
@@ -57,13 +59,15 @@ public sealed class CharacterGroupIsolationTests
     [TestMethod]
     public void TwoDistantBIslands_KeepTheirOwnBoundsWhenOtherGroupsJoinNearby()
     {
-        var project = Project(); project.Groups.Add(new CharacterGroup { Id = "C" });
+        var project = Project();
+        project.Groups.Add(new CharacterGroup { Id = "C" });
         project.Characters = [new Character { GraphX = 0, GraphY = 0, GroupIds = ["A", "B"] },
             new Character { GraphX = 2000, GraphY = 0, GroupIds = ["B", "C"] },
             new Character { GraphX = -1000, GraphY = 0, GroupIds = ["A"] },
             new Character { GraphX = 3000, GraphY = 0, GroupIds = ["C"] }];
         var before = CharacterGraphLayout.Calculate(project, null).Where(region => region.GroupId == "B").ToArray();
-        project.Characters[2].GraphX = -180; project.Characters[3].GraphX = 2180;
+        project.Characters[2].GraphX = -180;
+        project.Characters[3].GraphX = 2180;
         var after = CharacterGraphLayout.Calculate(project, null).Where(region => region.GroupId == "B").ToArray();
         Assert.HasCount(2, after);
         CollectionAssert.AreEqual(before, after);

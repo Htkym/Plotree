@@ -12,7 +12,8 @@ public sealed class DeferredGraphRenderer(Func<Action, bool> enqueue, Action ren
 
     public void SetLoaded(bool loaded)
     {
-        if (_loaded == loaded) return;
+        if (_loaded == loaded)
+            return;
         _loaded = loaded;
         if (!loaded)
         {
@@ -37,17 +38,21 @@ public sealed class DeferredGraphRenderer(Func<Action, bool> enqueue, Action ren
 
     private void Schedule()
     {
-        if (!_loaded || _suspended || !_pending || _queued || _rendering) return;
+        if (!_loaded || _suspended || !_pending || _queued || _rendering)
+            return;
         var generation = _generation;
         _queued = true;
-        if (!enqueue(() => Run(generation))) _queued = false;
+        if (!enqueue(() => Run(generation)))
+            _queued = false;
     }
 
     private void Run(int generation)
     {
-        if (generation != _generation) return;
+        if (generation != _generation)
+            return;
         _queued = false;
-        if (!_loaded || _suspended || !_pending) return;
+        if (!_loaded || _suspended || !_pending)
+            return;
         _pending = false;
         _rendering = true;
         try

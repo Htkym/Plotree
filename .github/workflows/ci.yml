@@ -33,3 +33,17 @@ jobs:
 
       - name: Run unit tests
         run: dotnet test .\tests\Plotree.Tests\Plotree.Tests.csproj -p:Platform=x64
+
+      - name: Verify control-statement formatting
+        shell: pwsh
+        env:
+          Platform: x64
+        run: |
+          dotnet restore tools/Plotree.Site/Plotree.Site.csproj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($project in @('src/Plotree/Plotree.csproj', 'tests/Plotree.Tests/Plotree.Tests.csproj', 'tools/Plotree.Site/Plotree.Site.csproj')) {
+            dotnet format style $project --diagnostics IDE2001 --no-restore --verify-no-changes
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            dotnet format whitespace $project --no-restore --verify-no-changes
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
