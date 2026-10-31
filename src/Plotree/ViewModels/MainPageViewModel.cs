@@ -1112,7 +1112,11 @@ public partial class MainPageViewModel : ObservableObject
     public bool TypeShowCharacters
     {
         get => AppearanceResolver.ResolveDefaults(Project, AppearanceType).ShowCharacters;
-        set { if (value != TypeShowCharacters) ApplyTypeAppearance(appearance => appearance.ShowCharacters = value); }
+        set
+        {
+            if (value != TypeShowCharacters)
+                ApplyTypeAppearance(appearance => appearance.ShowCharacters = value);
+        }
     }
 
     public int NodeCharactersDisplayIndex
@@ -1450,7 +1454,8 @@ public partial class MainPageViewModel : ObservableObject
                 node.SetCharacterWithoutRecording(option.Id, isPresent);
             }
         });
-        foreach (var node in _selectedNodes) node.RefreshCharacters();
+        foreach (var node in _selectedNodes)
+            node.RefreshCharacters();
         NotifySelectionChanged();
     }
 
@@ -1967,7 +1972,8 @@ public partial class MainPageViewModel : ObservableObject
         RebuildCharacterAssignmentGroups();
         OnPropertyChanged(nameof(SelectedCharacterGroupSummary));
         OnPropertyChanged(nameof(SelectedCharactersSummary));
-        foreach (var node in Nodes) node.RefreshCharacters();
+        foreach (var node in Nodes)
+            node.RefreshCharacters();
     }
 
     // ----- File commands and exports -----

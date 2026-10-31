@@ -14,9 +14,11 @@ public static class CharacterGraphInteraction
     {
         if (control)
         {
-            if (!selected.Add(id)) selected.Remove(id);
+            if (!selected.Add(id))
+                selected.Remove(id);
         }
-        else if (shift) selected.Add(id);
+        else if (shift)
+            selected.Add(id);
         else if (!preserveExistingSelection || !selected.Contains(id))
         {
             selected.Clear();
@@ -70,7 +72,8 @@ public static class CharacterGraphInteraction
 
     public static bool ContainsHit(RelationshipGeometry geometry, double x, double y)
     {
-        if (!geometry.CanHit) return false;
+        if (!geometry.CanHit)
+            return false;
         var line = geometry.HitTarget;
         var dx = line.X2 - line.X1;
         var dy = line.Y2 - line.Y1;
@@ -95,7 +98,8 @@ public sealed class CharacterNodeActivation
 
     public void PrepareKeyboard(VirtualKey key)
     {
-        if (key is VirtualKey.Enter or VirtualKey.Space) Reset();
+        if (key is VirtualKey.Enter or VirtualKey.Space)
+            Reset();
     }
 
     public bool ShouldSelectFromClick(string id) => id != _pointerCharacterId;
@@ -103,7 +107,11 @@ public sealed class CharacterNodeActivation
     public Action CompletePointer()
     {
         var generation = _generation;
-        return () => { if (generation == _generation) Reset(); };
+        return () =>
+        {
+            if (generation == _generation)
+                Reset();
+        };
     }
 
     public void Reset()

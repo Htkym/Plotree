@@ -130,7 +130,8 @@ public sealed partial class CharacterGraph : UserControl
         _selectedCharacterIds.Clear();
         _selectedRelationshipId = null;
         _viewModel?.SelectGraphGroup(null);
-        if (_viewModel is not null) RefreshGroupBackgrounds();
+        if (_viewModel is not null)
+            RefreshGroupBackgrounds();
         _editing = false;
         RefreshDetails();
         RefreshSelection();
@@ -208,7 +209,8 @@ public sealed partial class CharacterGraph : UserControl
         var commitMove = _movingCharacterId is not null && _characterDragStarted;
         ResetGestureState();
         Viewport.ReleasePointerCaptures();
-        if (commitMove) _viewModel?.EndCharacterMove();
+        if (commitMove)
+            _viewModel?.EndCharacterMove();
         _renderer?.SetSuspended(false);
     }
 
@@ -224,9 +226,11 @@ public sealed partial class CharacterGraph : UserControl
 
     private void RenderCore()
     {
-        if (!IsLoaded) return;
+        if (!IsLoaded)
+            return;
         GroupsFlyout.Hide();
-        if (!IsLoaded) return;
+        if (!IsLoaded)
+            return;
         World.Children.Clear();
         _nodes.Clear();
         _edges.Clear();
@@ -339,8 +343,11 @@ public sealed partial class CharacterGraph : UserControl
             icon.HorizontalAlignment = HorizontalAlignment.Center;
             visual.Children.Add(icon);
             // A separate outer container owns the ring; the 68px avatar row must not clip an 80px ring.
-            var container = new Grid { Width = NodeWidth,
-                Height = NodeHeight + CharacterGraphInteraction.SelectionRingInset };
+            var container = new Grid
+            {
+                Width = NodeWidth,
+                Height = NodeHeight + CharacterGraphInteraction.SelectionRingInset
+            };
             visual.VerticalAlignment = VerticalAlignment.Top;
             visual.Margin = new Thickness(0, CharacterGraphInteraction.SelectionRingInset, 0, 0);
             container.Children.Add(visual);
@@ -411,7 +418,8 @@ public sealed partial class CharacterGraph : UserControl
 
     private void DrawGroupClusters()
     {
-        if (_viewModel is null) return;
+        if (_viewModel is null)
+            return;
         var project = _viewModel.Project;
         var regions = CharacterGraphLayout.Calculate(project, _viewModel.SelectedGraphGroupId, NodeWidth, NodeHeight);
         foreach (var region in regions)
@@ -454,7 +462,10 @@ public sealed partial class CharacterGraph : UserControl
                 Content = new TextBlock { Text = group.Name, TextTrimming = TextTrimming.CharacterEllipsis },
                 Style = (Style)Resources["RelationshipLabelStyle"],
                 Padding = new Thickness(6, 0, 6, 0),
-                Width = placement.Width, Height = placement.Height, MinWidth = CharacterGraphLayout.MinimumGroupLabelWidth, MinHeight = 0,
+                Width = placement.Width,
+                Height = placement.Height,
+                MinWidth = CharacterGraphLayout.MinimumGroupLabelWidth,
+                MinHeight = 0,
                 BorderThickness = new Thickness(group.Id == _viewModel.SelectedGraphGroupId ? 2 : 1),
             };
             name.Click += OnGroupLabelClick;
@@ -471,8 +482,10 @@ public sealed partial class CharacterGraph : UserControl
 
     private void RefreshGroupBackgrounds()
     {
-        foreach (var border in _groups.Values.SelectMany(backgrounds => backgrounds)) World.Children.Remove(border);
-        foreach (var name in _groupLabels) World.Children.Remove(name);
+        foreach (var border in _groups.Values.SelectMany(backgrounds => backgrounds))
+            World.Children.Remove(border);
+        foreach (var name in _groupLabels)
+            World.Children.Remove(name);
         _groups.Clear();
         _groupLabels.Clear();
         DrawGroupClusters();
@@ -487,14 +500,16 @@ public sealed partial class CharacterGraph : UserControl
     private void OnGroupPressed(object sender, PointerRoutedEventArgs e)
     {
         if (sender is not Border { Tag: string groupId } || _viewModel is null
-            || !e.GetCurrentPoint(Viewport).Properties.IsLeftButtonPressed) return;
+            || !e.GetCurrentPoint(Viewport).Properties.IsLeftButtonPressed)
+            return;
         SelectGroup(groupId, e.GetCurrentPoint(this).Position);
         e.Handled = true;
     }
 
     private void SelectGroup(string groupId, Point position)
     {
-        if (_viewModel is null || !_viewModel.SelectGraphGroup(groupId)) return;
+        if (_viewModel is null || !_viewModel.SelectGraphGroup(groupId))
+            return;
         _selectedCharacterIds.Clear();
         _selectedRelationshipId = null;
         _editing = false;
@@ -578,15 +593,18 @@ public sealed partial class CharacterGraph : UserControl
 
     private void OnGraphViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
     {
-        if (_viewModel is null || Math.Abs(GraphScroll.ZoomFactor - _hitTargetZoom) < 0.001) return;
+        if (_viewModel is null || Math.Abs(GraphScroll.ZoomFactor - _hitTargetZoom) < 0.001)
+            return;
         _hitTargetZoom = GraphScroll.ZoomFactor;
-        foreach (var relationship in _viewModel.Project.Relationships) PositionRelationship(relationship);
+        foreach (var relationship in _viewModel.Project.Relationships)
+            PositionRelationship(relationship);
     }
 
     private void OnNodeClick(object sender, RoutedEventArgs e)
     {
         if (_viewModel is null || sender is not Button { Tag: string id }
-            || !_characterActivation.ShouldSelectFromClick(id)) return;
+            || !_characterActivation.ShouldSelectFromClick(id))
+            return;
         var control = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
         var shift = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Shift).HasFlag(CoreVirtualKeyStates.Down);
         SelectCharacter(id, control, shift);
@@ -602,7 +620,8 @@ public sealed partial class CharacterGraph : UserControl
         RefreshDetails();
         RefreshSelection();
         BuildGroupsFlyout();
-        if (control || shift) SaveSelectedPairIfNew();
+        if (control || shift)
+            SaveSelectedPairIfNew();
     }
 
     private void OnNodePressed(object sender, PointerRoutedEventArgs e)
@@ -683,7 +702,8 @@ public sealed partial class CharacterGraph : UserControl
         else if (e.GetCurrentPoint(Viewport).Properties.IsLeftButtonPressed)
         {
             _viewModel?.SelectGraphGroup(null);
-            if (_viewModel is not null) RefreshGroupBackgrounds();
+            if (_viewModel is not null)
+                RefreshGroupBackgrounds();
             _marqueeSelecting = true;
             _marqueeAdditive = e.KeyModifiers.HasFlag(VirtualKeyModifiers.Control)
                 || e.KeyModifiers.HasFlag(VirtualKeyModifiers.Shift);
@@ -793,7 +813,8 @@ public sealed partial class CharacterGraph : UserControl
         // Leave the gate in place until all native Click callbacks in this release event finish.
         var completeActivation = _characterActivation.CompletePointer();
         DispatcherQueue.TryEnqueue(() => completeActivation());
-        if (_movingCharacterId is null && _connectingFromId is null && !_panning && !_marqueeSelecting) return;
+        if (_movingCharacterId is null && _connectingFromId is null && !_panning && !_marqueeSelecting)
+            return;
         var sourceId = _connectingFromId;
         var preview = _connectionPreview;
         var commitMove = _movingCharacterId is not null && _characterDragStarted;
@@ -804,7 +825,8 @@ public sealed partial class CharacterGraph : UserControl
         // this handler. Retire the complete gesture before any of those operations.
         ResetGestureState();
         Viewport.ReleasePointerCapture(e.Pointer);
-        if (preview is not null) World.Children.Remove(preview);
+        if (preview is not null)
+            World.Children.Remove(preview);
         if (completedConnection && sourceId is not null && _viewModel is not null
             && FindCharacterAt(e.GetCurrentPoint(Viewport).Position) is { } targetId && targetId != sourceId)
         {
@@ -832,7 +854,8 @@ public sealed partial class CharacterGraph : UserControl
         }
         MarqueeVisual.Visibility = Visibility.Collapsed;
         BuildGroupsFlyout();
-        if (completedMarquee) SaveSelectedPairIfNew();
+        if (completedMarquee)
+            SaveSelectedPairIfNew();
         _renderer?.SetSuspended(false);
         e.Handled = true;
     }
@@ -894,7 +917,8 @@ public sealed partial class CharacterGraph : UserControl
     private void SelectRelationship(string id)
     {
         _viewModel?.SelectGraphGroup(null);
-        if (_viewModel is not null) RefreshGroupBackgrounds();
+        if (_viewModel is not null)
+            RefreshGroupBackgrounds();
         _selectedRelationshipId = id;
         _selectedCharacterIds.Clear();
         _editing = true;
@@ -939,8 +963,10 @@ public sealed partial class CharacterGraph : UserControl
         };
         var selectedGroup = project.Groups.FirstOrDefault(group => group.Id == _viewModel.SelectedGraphGroupId);
         var selectedRelationship = project.Relationships.FirstOrDefault(relationship => relationship.Id == _selectedRelationshipId);
-        if (selectedGroup is not null) SelectedName.Text = selectedGroup.Name;
-        else if (selectedRelationship is not null) SelectedName.Text = RelationshipName(selectedRelationship);
+        if (selectedGroup is not null)
+            SelectedName.Text = selectedGroup.Name;
+        else if (selectedRelationship is not null)
+            SelectedName.Text = RelationshipName(selectedRelationship);
         SelectedGroups.Text = character is null ? string.Empty
             : Loc.Format("Relationship_Groups", _viewModel.GetCharacterGroupSummary(character));
         if (selectedGroup is not null)
@@ -1016,7 +1042,8 @@ public sealed partial class CharacterGraph : UserControl
     private void OnAddRelationship(object sender, RoutedEventArgs e)
     {
         _viewModel?.SelectGraphGroup(null);
-        if (_viewModel is not null) RefreshGroupBackgrounds();
+        if (_viewModel is not null)
+            RefreshGroupBackgrounds();
         _selectedRelationshipId = null;
         _editing = true;
         RefreshDetails();
@@ -1041,7 +1068,8 @@ public sealed partial class CharacterGraph : UserControl
     private void BeginNewRelationship(string firstId, string? secondId)
     {
         _viewModel?.SelectGraphGroup(null);
-        if (_viewModel is not null) RefreshGroupBackgrounds();
+        if (_viewModel is not null)
+            RefreshGroupBackgrounds();
         _selectedCharacterIds.Clear();
         _selectedCharacterIds.Add(firstId);
         if (secondId is not null)
@@ -1111,14 +1139,16 @@ public sealed partial class CharacterGraph : UserControl
         };
         create.Click += OnCreateGroup;
         GroupsFlyout.Items.Add(create);
-        if (_viewModel is null || _viewModel.Project.Groups.Count == 0) return;
+        if (_viewModel is null || _viewModel.Project.Groups.Count == 0)
+            return;
         GroupsFlyout.Items.Add(new MenuFlyoutSeparator());
         foreach (var group in _viewModel.Project.Groups)
         {
             var submenu = new MenuFlyoutSubItem { Text = group.Name };
             var assign = new MenuFlyoutItem
             {
-                Text = Loc.Get("Graph_GroupSelection"), Tag = group.Id,
+                Text = Loc.Get("Graph_GroupSelection"),
+                Tag = group.Id,
                 IsEnabled = _selectedCharacterIds.Count > 0,
             };
             assign.Click += OnAssignSelectionToGroup;

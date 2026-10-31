@@ -261,7 +261,10 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (IsRelationshipView) CharacterGraphView.ZoomIn(); else CanvasView.ZoomIn();
+        if (IsRelationshipView)
+            CharacterGraphView.ZoomIn();
+        else
+            CanvasView.ZoomIn();
         args.Handled = true;
     }
 
@@ -273,7 +276,10 @@ public sealed partial class MainPage : Page
             return;
         }
 
-        if (IsRelationshipView) CharacterGraphView.ZoomOut(); else CanvasView.ZoomOut();
+        if (IsRelationshipView)
+            CharacterGraphView.ZoomOut();
+        else
+            CanvasView.ZoomOut();
         args.Handled = true;
     }
 

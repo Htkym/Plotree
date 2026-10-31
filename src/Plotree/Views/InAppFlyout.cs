@@ -16,14 +16,19 @@ public static class InAppFlyout
 
     public static void ConfigureTree(DependencyObject element)
     {
-        if (element is Control control) control.ApplyTemplate();
-        if (element is Popup popup) popup.ShouldConstrainToRootBounds = true;
+        if (element is Control control)
+            control.ApplyTemplate();
+        if (element is Popup popup)
+            popup.ShouldConstrainToRootBounds = true;
         if (element is FrameworkElement owner)
         {
             // Native MenuBarItem exposes its internal menu through ContentButton.ContextFlyout.
-            if (owner is Button && owner.ContextFlyout is { } context) Configure(owner, context);
-            if (owner is Button { Flyout: { } buttonFlyout }) Configure(owner, buttonFlyout);
-            if (owner is SplitButton { Flyout: { } splitFlyout }) Configure(owner, splitFlyout);
+            if (owner is Button && owner.ContextFlyout is { } context)
+                Configure(owner, context);
+            if (owner is Button { Flyout: { } buttonFlyout })
+                Configure(owner, buttonFlyout);
+            if (owner is SplitButton { Flyout: { } splitFlyout })
+                Configure(owner, splitFlyout);
         }
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
             ConfigureTree(VisualTreeHelper.GetChild(element, index));
@@ -33,7 +38,8 @@ public static class InAppFlyout
     public static void ConfigureDropDown(ComboBox owner)
     {
         var popup = FindPopup(owner);
-        if (popup is null || owner.XamlRoot.Content is not FrameworkElement root) return;
+        if (popup is null || owner.XamlRoot.Content is not FrameworkElement root)
+            return;
         var position = owner.TransformToVisual(root).TransformPoint(new Point(0, 0));
         var bounds = MenuPlacementCalculator.BelowItem(root.ActualWidth, root.ActualHeight,
             position.X, position.Y, owner.ActualHeight, double.MaxValue, double.MaxValue);
@@ -53,18 +59,21 @@ public static class InAppFlyout
 
     private static Popup? FindPopup(DependencyObject element)
     {
-        if (element is Popup popup) return popup;
+        if (element is Popup popup)
+            return popup;
         for (var index = 0; index < VisualTreeHelper.GetChildrenCount(element); index++)
         {
             var match = FindPopup(VisualTreeHelper.GetChild(element, index));
-            if (match is not null) return match;
+            if (match is not null)
+                return match;
         }
         return null;
     }
 
     public static void Configure(FrameworkElement owner, FlyoutBase flyout)
     {
-        if (Configured.TryGetValue(flyout, out _)) return;
+        if (Configured.TryGetValue(flyout, out _))
+            return;
         var originalStyle = flyout switch
         {
             MenuFlyout menu => menu.MenuFlyoutPresenterStyle,
@@ -95,7 +104,8 @@ public static class InAppFlyout
         style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 0d));
         style.Setters.Add(new Setter(FrameworkElement.MaxWidthProperty, bounds.Width));
         style.Setters.Add(new Setter(FrameworkElement.MaxHeightProperty, bounds.Height));
-        if (flyout is MenuFlyout menu) menu.MenuFlyoutPresenterStyle = style;
+        if (flyout is MenuFlyout menu)
+            menu.MenuFlyoutPresenterStyle = style;
         else if (flyout is Flyout contentFlyout)
         {
             contentFlyout.FlyoutPresenterStyle = style;

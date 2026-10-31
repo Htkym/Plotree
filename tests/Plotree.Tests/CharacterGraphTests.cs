@@ -13,7 +13,9 @@ public sealed class CharacterGraphTests
     public void GroupingAndRecoloring_PreserveAllPositionsAndExistingRelationship()
     {
         var vm = new MainPageViewModel();
-        vm.AddCharacter("A"); vm.AddCharacter("B"); vm.AddCharacter("Outside");
+        vm.AddCharacter("A");
+        vm.AddCharacter("B");
+        vm.AddCharacter("Outside");
         var characters = vm.Project.Characters;
         vm.MoveCharacter(characters[0].Id, -140, 12);
         vm.MoveCharacter(characters[1].Id, 1700, 800);
@@ -33,7 +35,9 @@ public sealed class CharacterGraphTests
     public void TreeMembershipAndGraphMembership_UseSameGroupsAndAssignmentOptions()
     {
         var vm = new MainPageViewModel();
-        vm.AddCharacter("A"); vm.AddCharacter("B"); vm.AddGroup("Tree group");
+        vm.AddCharacter("A");
+        vm.AddCharacter("B");
+        vm.AddGroup("Tree group");
         var a = vm.Characters[0];
         vm.SelectedCharacter = a;
         vm.Groups.Single().IsChecked = true;
@@ -87,7 +91,8 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void SelectedGroup_HideUndoRedoAndDeletionKeepValidSelectionAndMembership()
     {
-        var vm = new MainPageViewModel(); vm.AddCharacter("A");
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
         var group = vm.CreateGraphGroup("Team", "#336699", [vm.Characters.Single().Id])!;
         var before = ProjectSerializer.Serialize(vm.Project);
         Assert.IsTrue(vm.SelectGraphGroup(group.Id));
@@ -131,7 +136,8 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void TreeUncheckOfLegacyGraphGroup_DoesNotRestoreRemovedMembershipOnSave()
     {
-        var vm = new MainPageViewModel(); vm.AddCharacter("A");
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
         var group = vm.CreateGraphGroup("Team", "#336699", [vm.Characters.Single().Id])!;
         vm.Groups.Single().IsChecked = false;
         Assert.IsEmpty(vm.Project.Characters.Single().GroupIds);
@@ -144,12 +150,15 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void Ungroup_RemovesSharedMembershipsPreservingPositions()
     {
-        var vm = new MainPageViewModel(); vm.AddCharacter("A");
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
         var character = vm.Project.Characters.Single();
-        vm.CreateGraphGroup("One", null, [character.Id]); vm.CreateGraphGroup("Two", null, [character.Id]);
+        vm.CreateGraphGroup("One", null, [character.Id]);
+        vm.CreateGraphGroup("Two", null, [character.Id]);
         var before = (character.GraphX, character.GraphY);
         vm.AssignCharactersToGraphGroup([character.Id], null);
-        Assert.IsEmpty(character.GroupIds); Assert.IsNull(character.GraphGroupId);
+        Assert.IsEmpty(character.GroupIds);
+        Assert.IsNull(character.GraphGroupId);
         Assert.AreEqual(before, (character.GraphX, character.GraphY));
         Assert.IsEmpty(CharacterGraphLayout.Calculate(vm.Project, null));
         vm.UndoCommand.Execute(null);
@@ -169,7 +178,9 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void NewRelationship_DefaultLabelRoundTripsAndEditingCanKeepLegacyEmptyLabel()
     {
-        var vm = new MainPageViewModel(); vm.AddCharacter("A"); vm.AddCharacter("B");
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("A");
+        vm.AddCharacter("B");
         var relationship = vm.SaveRelationship(null, vm.Characters[0].Id, vm.Characters[1].Id, "   ")!;
         Assert.AreEqual(Loc.Get("Relationship_DefaultLabel"), relationship.Label);
         Assert.AreEqual(relationship.Label, ProjectSerializer.Deserialize(ProjectSerializer.Serialize(vm.Project)).Relationships.Single().Label);
@@ -180,8 +191,10 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void DetailLines_UseOneLinePerCharacterWithAllGroupsAndNoDuplicateOrMissingNames()
     {
-        var project = SharedMemberProject(); project.Characters[0].Name = "人物A";
-        project.Groups[0].Name = "グループ1"; project.Groups[1].Name = "グループ2";
+        var project = SharedMemberProject();
+        project.Characters[0].Name = "人物A";
+        project.Groups[0].Name = "グループ1";
+        project.Groups[1].Name = "グループ2";
         project.Characters.Add(new Character { Id = "b", Name = "人物B" });
         Assert.AreEqual("・人物A（グループ1, グループ2）\n・人物B",
             CharacterSummaryFormatter.DetailLines(project, ["a", "missing", "a", "b"], key => ReadResources("ja-JP")[key]));
@@ -191,7 +204,9 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void CardCharacterVisibility_InheritsOverridesClonesAndSerializesIndependentlyOfDisplayMode()
     {
-        var project = new PlotProject(); var node = new PlotNode(); project.Nodes.Add(node);
+        var project = new PlotProject();
+        var node = new PlotNode();
+        project.Nodes.Add(node);
         Assert.IsFalse(AppearanceResolver.Resolve(project, node).ShowCharacters);
         project.Appearance.Scene.ShowCharacters = true;
         node.Appearance = new NodeAppearance { DisplayMode = NodeDisplayMode.TitleOnly };
@@ -209,7 +224,9 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void CardCharacterSettings_UndoRedoAndAssignmentNotifyExistingCard()
     {
-        var vm = new MainPageViewModel(); var node = vm.AddNode(NodeType.Scene, 0, 0); vm.SelectNode(node);
+        var vm = new MainPageViewModel();
+        var node = vm.AddNode(NodeType.Scene, 0, 0);
+        vm.SelectNode(node);
         vm.AddCharacter("A");
         var notifications = new List<string?>();
         node.PropertyChanged += (_, e) => notifications.Add(e.PropertyName);
@@ -267,8 +284,10 @@ public sealed class CharacterGraphTests
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(threadCulture);
             CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(threadCulture);
-            var project = SharedMemberProject(); project.Characters[0].Name = "Alice";
-            project.Groups[0].Name = "Team one"; project.Groups[1].Name = "Team two";
+            var project = SharedMemberProject();
+            project.Characters[0].Name = "Alice";
+            project.Groups[0].Name = "Team one";
+            project.Groups[1].Name = "Team two";
             project.Characters[0].GroupIds.Add("first");
             project.Characters.Add(new Character { Id = "b", Name = "Bob" });
             var resources = ReadResources(resourceLanguage);
@@ -286,8 +305,10 @@ public sealed class CharacterGraphTests
     [TestMethod]
     public void MissingDetailResources_UseReadableEnglishFallback()
     {
-        var project = SharedMemberProject(); project.Characters[0].Name = "Alice";
-        project.Groups[0].Name = "Team"; project.Groups[1].Name = string.Empty;
+        var project = SharedMemberProject();
+        project.Characters[0].Name = "Alice";
+        project.Groups[0].Name = "Team";
+        project.Groups[1].Name = string.Empty;
         Assert.AreEqual("• Alice (Team)", CharacterSummaryFormatter.DetailLines(project, ["a"], key => key));
     }
 
@@ -296,7 +317,8 @@ public sealed class CharacterGraphTests
     {
         Assert.AreEqual("Add selected characters to this group", ReadResources("en-US")["Graph_GroupSelection"]);
         Assert.AreEqual("選択中の人物をこのグループに追加", ReadResources("ja-JP")["Graph_GroupSelection"]);
-        var vm = new MainPageViewModel(); vm.AddCharacter("Alice");
+        var vm = new MainPageViewModel();
+        vm.AddCharacter("Alice");
         var id = vm.Characters.Single().Id;
         var original = vm.CreateGraphGroup("First", "#336699", [id])!;
         vm.AddCharacter("Bob");

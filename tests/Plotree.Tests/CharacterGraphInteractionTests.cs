@@ -76,8 +76,13 @@ public sealed class CharacterGraphInteractionTests
         {
             Groups = Enumerable.Range(0, count).Select(index => new CharacterGroup { Id = $"group{index}" }).ToList(),
         };
-        project.Characters.Add(new Character { Id = "shared", GraphX = 30, GraphY = 50,
-            GroupIds = project.Groups.Select(group => group.Id).ToList() });
+        project.Characters.Add(new Character
+        {
+            Id = "shared",
+            GraphX = 30,
+            GraphY = 50,
+            GroupIds = project.Groups.Select(group => group.Id).ToList()
+        });
         foreach (var selected in project.Groups.Select(group => group.Id))
         {
             var regions = CharacterGraphLayout.Calculate(project, selected);
@@ -148,10 +153,12 @@ public sealed class CharacterGraphInteractionTests
         }
         var regions = CharacterGraphLayout.Calculate(project, null);
         Assert.HasCount(12, regions);
-        foreach (var region in regions) Assert.IsLessThanOrEqualTo(300d, region.Height);
+        foreach (var region in regions)
+            Assert.IsLessThanOrEqualTo(300d, region.Height);
         var labels = CharacterGraphLayout.CalculateLabels(regions);
         for (var a = 0; a < labels.Count; a++)
-            for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(labels[a], labels[b]));
+            for (var b = a + 1; b < labels.Count; b++)
+                Assert.IsFalse(Overlap(labels[a], labels[b]));
     }
 
     [TestMethod]
@@ -210,15 +217,21 @@ public sealed class CharacterGraphInteractionTests
         {
             Groups = Enumerable.Range(0, count).Select(index => new CharacterGroup { Id = $"g{index}" }).ToList(),
         };
-        project.Characters.Add(new Character { Id = "shared", GraphX = 70, GraphY = -90,
-            GroupIds = project.Groups.Select(group => group.Id).ToList() });
+        project.Characters.Add(new Character
+        {
+            Id = "shared",
+            GraphX = 70,
+            GraphY = -90,
+            GroupIds = project.Groups.Select(group => group.Id).ToList()
+        });
         var originalPositions = project.Characters.Select(character => (character.GraphX, character.GraphY)).ToArray();
         var bounds = CharacterGraphLayout.CalculateCanvasBounds(project);
         foreach (var selected in project.Groups.Select(group => (string?)group.Id).Prepend(null))
         {
             var regions = CharacterGraphLayout.Calculate(project, selected);
             var labels = CharacterGraphLayout.CalculateLabels(regions);
-            if (selected is not null) Assert.AreEqual(selected, regions.Last().GroupId);
+            if (selected is not null)
+                Assert.AreEqual(selected, regions.Last().GroupId);
             for (var rank = 0; rank < regions.Count; rank++)
             {
                 var region = regions[rank];
@@ -229,7 +242,8 @@ public sealed class CharacterGraphInteractionTests
                 Assert.IsTrue(Contains(new(region.X, region.Y, region.Width, region.Height),
                     CharacterGraphInteraction.CalculateCharacterBounds(70, -90)));
                 Assert.IsTrue(bounds.Any(bound => Contains(bound, new(region.X, region.Y, region.Width, region.Height))));
-                if (rank == 0) continue;
+                if (rank == 0)
+                    continue;
                 Assert.AreEqual(CharacterGraphLayout.StackStepX, regions[rank - 1].X - region.X);
                 Assert.AreEqual(CharacterGraphLayout.StackStepY, region.Y - regions[rank - 1].Y);
                 Assert.AreEqual(CharacterGraphLayout.StackStepX, labels[rank - 1].X - label.X);
@@ -271,7 +285,8 @@ public sealed class CharacterGraphInteractionTests
                     new(labels[a].X, labels[a].Y, labels[a].Width, labels[a].Height))));
                 Assert.IsTrue(bounds.Any(bound => Contains(bound,
                     new(regions[a].X, regions[a].Y, regions[a].Width, regions[a].Height))));
-                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(labels[a], labels[b]));
+                for (var b = a + 1; b < labels.Count; b++)
+                    Assert.IsFalse(Overlap(labels[a], labels[b]));
             }
         }
     }
@@ -307,7 +322,8 @@ public sealed class CharacterGraphInteractionTests
                 Assert.IsTrue(double.IsFinite(label.Width));
                 Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
                 Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
-                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+                for (var b = a + 1; b < labels.Count; b++)
+                    Assert.IsFalse(Overlap(label, labels[b]));
             }
             CollectionAssert.AreEqual(positions,
                 project.Characters.Select(character => (character.GraphX, character.GraphY)).ToArray());
@@ -332,7 +348,8 @@ public sealed class CharacterGraphInteractionTests
                 var label = labels[a];
                 Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
                 Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
-                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+                for (var b = a + 1; b < labels.Count; b++)
+                    Assert.IsFalse(Overlap(label, labels[b]));
             }
         }
     }
@@ -344,8 +361,12 @@ public sealed class CharacterGraphInteractionTests
         for (var index = 0; index < 24; index++)
         {
             project.Groups.Add(new CharacterGroup { Id = $"g{index}" });
-            project.Characters.Add(new Character { GraphX = index % 3 * 13,
-                GraphY = index % 5 * 17, GroupIds = [$"g{index}"] });
+            project.Characters.Add(new Character
+            {
+                GraphX = index % 3 * 13,
+                GraphY = index % 5 * 17,
+                GroupIds = [$"g{index}"]
+            });
         }
         var bounds = CharacterGraphLayout.CalculateCanvasBounds(project);
         foreach (var selected in project.Groups.Select(group => group.Id))
@@ -356,7 +377,8 @@ public sealed class CharacterGraphInteractionTests
                 var label = labels[a];
                 Assert.IsGreaterThanOrEqualTo(CharacterGraphLayout.MinimumGroupLabelWidth, label.Width);
                 Assert.IsTrue(bounds.Any(bound => Contains(bound, new(label.X, label.Y, label.Width, label.Height))));
-                for (var b = a + 1; b < labels.Count; b++) Assert.IsFalse(Overlap(label, labels[b]));
+                for (var b = a + 1; b < labels.Count; b++)
+                    Assert.IsFalse(Overlap(label, labels[b]));
             }
         }
     }
