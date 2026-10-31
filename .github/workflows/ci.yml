@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - "**"
   workflow_dispatch:
 
 permissions:
@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v6.0.0
