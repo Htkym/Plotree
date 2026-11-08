@@ -5,14 +5,14 @@ version: 'v0.0.3'
 workflows:
     '.github/workflows/ci.yml':
         - 'actions/checkout@v7.0.1'
-        - 'actions/setup-dotnet@v6.0.0'
+        - 'actions/setup-dotnet@v6.1.0'
     '.github/workflows/dependency-review.yml':
         - 'actions/dependency-review-action@v5.0.0'
     '.github/workflows/pages.yml':
         - 'actions/checkout@v7.0.1'
         - 'actions/configure-pages@v6.0.0'
         - 'actions/deploy-pages@v5.0.1'
-        - 'actions/setup-dotnet@v6.0.0'
+        - 'actions/setup-dotnet@v6.1.0'
         - 'actions/upload-pages-artifact@v5.0.0'
 dependencies:
     'actions/checkout@v7.0.1':
@@ -35,9 +35,9 @@ dependencies:
         commit: 'sha1-368f82528645a54fb793d4d04e342629a3f51346'
         owner_id: 44036562
         repo_id: 438112499
-    'actions/setup-dotnet@v6.0.0':
-        ref: 'v6.0.0'
-        commit: 'sha1-a98b56852c35b8e3190ac28c8c2271da59106c68'
+    'actions/setup-dotnet@v6.1.0':
+        ref: 'v6.1.0'
+        commit: 'sha1-0f4a354dd5547a28c70b7853dbd95d5b67886e73'
         owner_id: 44036562
         repo_id: 192625306
     'actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f':
